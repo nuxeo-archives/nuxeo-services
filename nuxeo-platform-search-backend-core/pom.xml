@@ -51,10 +51,15 @@
       <artifactId>commons-beanutils</artifactId>
       <scope>test</scope>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>javax.ressource</groupId>-->
+<!--      <artifactId>jca-api</artifactId>-->
+<!--      <version>1.5</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
     <dependency>
-      <groupId>javax.ressource</groupId>
-      <artifactId>jca-api</artifactId>
-      <version>1.5</version>
+      <groupId>javax.resource</groupId>
+      <artifactId>connector-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
