@@ -76,12 +76,14 @@
       <artifactId>pdfbox</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- TODO: JC do we need a different version from default one ? -->
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
       <version>1.2</version>
       <scope>test</scope>
     </dependency>
+    <!-- TODO: JC do we need a different version from default one ? -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
