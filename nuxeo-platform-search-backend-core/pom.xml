@@ -9,6 +9,7 @@
   </parent>
 
   <artifactId>nuxeo-platform-search-backend-core</artifactId>
+  <version>5.2.0-SP1</version>
   <name>Nuxeo Core Search Backend</name>
   <description>Nuxeo Enterprise Platform: Nuxeo Core Search Backend.</description>
 
@@ -24,6 +25,7 @@
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-search-api</artifactId>
+      <version>5.2.0-SP1</version>
     </dependency>
 
     <dependency>
