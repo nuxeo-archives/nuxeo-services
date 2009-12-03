@@ -80,6 +80,15 @@ public interface Widget extends Serializable {
     String getMode();
 
     /**
+     * Sets the widget mode when it needs to be overridden by the first computed
+     * one.
+     *
+     * @param mode
+     * @since 5.3.1
+     */
+    void setMode(String mode);
+
+    /**
      * Returns the label to use in this mode.
      */
     String getLabel();

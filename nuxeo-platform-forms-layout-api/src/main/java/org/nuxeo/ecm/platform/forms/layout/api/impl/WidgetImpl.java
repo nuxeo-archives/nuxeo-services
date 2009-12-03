@@ -41,7 +41,7 @@ public class WidgetImpl implements Widget {
 
     final String name;
 
-    final String mode;
+    String mode;
 
     final String type;
 
@@ -101,6 +101,10 @@ public class WidgetImpl implements Widget {
 
     public String getMode() {
         return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
     public String getType() {
