@@ -46,12 +46,13 @@ public class TestPlacefulServiceImpl extends RepositoryOSGITestCase {
     public void setUp() throws Exception {
         super.setUp();
 
+        deployBundle("org.nuxeo.ecm.core.persistence");
         deployBundle("org.nuxeo.ecm.platform.placeful.core");
 
         deployContrib("org.nuxeo.ecm.platform.placeful.core",
-                "OSGI-INF/nxplacefulservice-configs-contrib.xml");
-
-        PlacefulServiceImpl.persistenceProvider.setHibernateConfiguration(new TestHibernateConfiguration());
+                "nxplacefulservice-configs-tests.xml");
+        deployContrib("org.nuxeo.ecm.platform.placeful.core",
+        "nxplaceful-tests.xml");
 
         placefulServiceImpl = (PlacefulServiceImpl) runtime.getComponent(PlacefulService.ID);
         assertNotNull(placefulServiceImpl);

@@ -39,6 +39,8 @@
         <templateItem typeName="SectionRoot" id="Sections" title="Sections" description="Sections"/>
         <templateItem typeName="TemplateRoot" id="Templates" title="Templates"
                       description="Root of workspaces templates"/>
+        <templateItem typeName="Section" id="Section" title="Section" path="Sections"
+                      description="Section created in SectionRoot"/>
       </template>
     </factoryBinding>
 
@@ -61,6 +63,21 @@
         <templateItem typeName="Folder" id="Folder2" title="Folder2" description="Second Folder"/>
       </template>
     </factoryBinding>
+
+   <factoryBinding name="SuperSpaceFactory" factoryName="SimpleTemplateFactory" targetFacet="SuperSpace">
+      <acl>
+        <ace granted="true" permission="Everything" principal="Administrator"/>
+        <ace granted="true" permission="Dream" principal="Danny"/>
+        <ace granted="false" permission="RedRum" principal="DannysImaginaryFriend"/>
+      </acl>
+      <template>
+        <templateItem typeName="Folder" id="FacetFolder" title="FacetFolder"
+                      description="folder created by facetFactories"/>
+      </template>
+    </factoryBinding>
+
+
+
 
   </extension>
 

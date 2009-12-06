@@ -27,7 +27,6 @@ import javax.ejb.Remote;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 
 import org.nuxeo.ecm.platform.ec.placeful.Annotation;
 import org.nuxeo.ecm.platform.ec.placeful.PlacefulServiceImpl;
@@ -37,7 +36,6 @@ import org.nuxeo.ecm.platform.ec.placeful.interfaces.PlacefulService;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- *
  * @author <a href="mailto:rspivak@nuxeo.com">Ruslan Spivak</a>
  */
 @Stateless
@@ -45,7 +43,7 @@ import org.nuxeo.runtime.api.Framework;
 @Remote(PlacefulServiceRemote.class)
 public class PlacefulServiceBean implements PlacefulServiceLocal, PlacefulServiceRemote {
 
-    @PersistenceContext(unitName = "nxplacefulservice")
+    @PersistenceContext(unitName = "nxplaceful")
     protected EntityManager em;
 
     protected PlacefulServiceImpl service;

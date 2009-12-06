@@ -37,6 +37,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -48,7 +49,7 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.SimplePrincipal;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventProducer;
-import org.nuxeo.ecm.core.event.impl.InlineEventContext;
+import org.nuxeo.ecm.core.event.impl.UnboundEventContext;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
 import org.nuxeo.ecm.platform.ui.web.auth.interfaces.LoginResponseHandler;
 import org.nuxeo.ecm.platform.ui.web.auth.interfaces.NuxeoAuthenticationPlugin;
@@ -137,14 +138,12 @@ public class NuxeoAuthenticationFilter implements Filter {
             props.put("category", LOGIN_JMS_CATEGORY);
             props.put("comment", comment);
 
-            EventContext ctx = new InlineEventContext(principal, props);
-
+            EventContext ctx = new UnboundEventContext(principal, props);
             try {
                 evtProducer.fireEvent(ctx.newEvent(eventId));
             } catch (ClientException e) {
                 log.error("Unable to send authentication event", e);
             }
-
             return true;
         } finally {
             if (loginContext != null) {
@@ -617,8 +616,14 @@ public class NuxeoAuthenticationFilter implements Filter {
         // invalidate Session !
         service.invalidateSession(request);
 
-        String pluginName = cachedUserInfo.getUserInfo().getAuthPluginName();
+        // Reset JSESSIONID Cookie
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        Cookie cookie= new Cookie("JSESSIONID", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        httpResponse.addCookie(cookie);
 
+        String pluginName = cachedUserInfo.getUserInfo().getAuthPluginName();
         NuxeoAuthenticationPlugin authPlugin = service.getPlugin(pluginName);
         NuxeoAuthenticationPluginLogoutExtension logoutPlugin = null;
 

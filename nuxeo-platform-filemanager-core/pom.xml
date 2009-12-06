@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-services-parent</artifactId>
-    <version>5.2.0</version>
+    <version>5.2.1.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-platform-filemanager-core</artifactId>
@@ -82,6 +82,10 @@
       <groupId>dom4j</groupId>
       <artifactId>dom4j</artifactId>
       <scope>test</scope>
+    </dependency>
+     <dependency>
+      <groupId>net.sf.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>

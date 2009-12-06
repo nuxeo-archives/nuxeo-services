@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.nuxeo</groupId>
     <artifactId>nuxeo-ecm</artifactId>
-    <version>5.2.0</version>
+    <version>5.2.1.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.nuxeo.ecm.platform</groupId>
@@ -16,10 +16,10 @@
   <description>Nuxeo Services: Parent.</description>
 
   <properties>
-    <nuxeo.common.version>1.5.0</nuxeo.common.version>
-    <nuxeo.runtime.version>1.5.0</nuxeo.runtime.version>
-    <nuxeo.core.version>1.5.0</nuxeo.core.version>
-    <nuxeo.services.version>5.2.0</nuxeo.services.version>
+    <nuxeo.common.version>1.5.1.0-SNAPSHOT</nuxeo.common.version>
+    <nuxeo.runtime.version>1.5.1.0-SNAPSHOT</nuxeo.runtime.version>
+    <nuxeo.core.version>1.5.1.0-SNAPSHOT</nuxeo.core.version>
+    <nuxeo.services.version>5.2.1.0-SNAPSHOT</nuxeo.services.version>
   </properties>
 
   <modules>
@@ -125,6 +125,17 @@
       <dependency>
         <groupId>org.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-sql-extensions</artifactId>
+        <version>${nuxeo.core.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-persistence</artifactId>
+        <version>${nuxeo.core.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-persistence</artifactId>
+        <classifier>tests</classifier>
         <version>${nuxeo.core.version}</version>
       </dependency>
       <dependency>

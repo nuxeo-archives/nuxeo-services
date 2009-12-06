@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-services-parent</artifactId>
-    <version>5.2.0</version>
+    <version>5.2.1.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-platform-mimetype-core</artifactId>
@@ -24,24 +24,18 @@
     <dependency>
       <groupId>jmimemagic</groupId>
       <artifactId>jmimemagic</artifactId>
-      <version>0.1.2</version>
-      <exclusions>
-        <!-- jmimemagic has a dependency on an old xercesImpl -->
-        <exclusion>
-          <groupId>xerces</groupId>
-          <artifactId>xercesImpl</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
-      <version>3.0.2-FINAL</version>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-scratchpad</artifactId>
-      <version>3.0.2-FINAL</version>
+    </dependency>
+    <dependency>
+      <groupId>oro</groupId>
+      <artifactId>oro</artifactId>
     </dependency>
 
     <dependency>
@@ -53,7 +47,6 @@
 
   <build>
     <plugins>
-      <!-- TODO: do we need all these dependencies in the jar? -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -69,18 +62,7 @@
                 <artifactItem>
                   <groupId>jmimemagic</groupId>
                   <artifactId>jmimemagic</artifactId>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.poi</groupId>
-                  <artifactId>poi</artifactId>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.poi</groupId>
-                  <artifactId>poi-scratchpad</artifactId>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>oro</groupId>
-                  <artifactId>oro</artifactId>
+                  <destFileName>jmimemagic.jar</destFileName>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>
@@ -92,4 +74,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>

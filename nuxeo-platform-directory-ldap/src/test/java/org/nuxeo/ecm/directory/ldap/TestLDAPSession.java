@@ -102,8 +102,8 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
                             "members"), entry2.getProperty(USER_SCHEMANAME,
                             "groups"));
                 } else {
-                    assertEquals(Arrays.asList("members"), entry2.getProperty(
-                            USER_SCHEMANAME, "groups"));
+                    assertEquals(Arrays.asList("members", "subgroup"),
+                            entry2.getProperty(USER_SCHEMANAME, "groups"));
                 }
             }
 
@@ -305,6 +305,95 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
 
         } finally {
             session.close();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void testGetEntryWithLdapTreeRef() throws ClientException {
+        if (!USE_EXTERNAL_TEST_LDAP_SERVER) {
+            return;
+        }
+        Session session = getLDAPDirectory("groupDirectory").getSession();
+        Session unitSession = getLDAPDirectory("unitDirectory").getSession();
+        try {
+            DocumentModel entry = session.getEntry("subgroup");
+            assertNotNull(entry);
+            assertEquals("subgroup", entry.getId());
+            assertEquals("subgroup", entry.getProperty(GROUP_SCHEMANAME,
+                    "groupname"));
+
+            // LDAP references do not work with the internal test server
+            List<String> members = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "members");
+            assertNotNull(members);
+            assertEquals(1, members.size());
+
+            List<String> subGroups = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "subGroups");
+            assertNotNull(subGroups);
+            assertEquals(0, subGroups.size());
+
+            List<String> parentGroups = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "parentGroups");
+            assertNotNull(parentGroups);
+            assertEquals(0, parentGroups.size());
+
+            List<String> ldapDirectChildren = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "ldapDirectChildren");
+            assertNotNull(ldapDirectChildren);
+            assertEquals(1, ldapDirectChildren.size());
+            assertTrue(ldapDirectChildren.contains("subsubgroup"));
+
+            List<String> ldapChildren = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "ldapChildren");
+            assertNotNull(ldapChildren);
+            assertEquals(2, ldapChildren.size());
+            assertTrue(ldapChildren.contains("subsubgroup"));
+            assertTrue(ldapChildren.contains("subsubsubgroup"));
+
+            List<String> ldapDirectParents = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "ldapDirectParents");
+            assertNotNull(ldapDirectParents);
+            assertEquals(1, ldapDirectParents.size());
+            assertTrue(ldapDirectParents.contains("group"));
+
+            List<String> ldapParents = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "ldapParents");
+            assertNotNull(ldapParents);
+            assertEquals(1, ldapParents.size());
+            assertTrue(ldapParents.contains("group"));
+
+            List<String> ldapUnitDirectChildren = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "ldapUnitDirectChildren");
+            assertNotNull(ldapUnitDirectChildren);
+            assertEquals(1, ldapUnitDirectChildren.size());
+            assertTrue(ldapUnitDirectChildren.contains("subunit"));
+
+            List<String> ldapUnitDirectParents = (List<String>) entry.getProperty(
+                    GROUP_SCHEMANAME, "ldapUnitDirectParents");
+            assertNotNull(ldapUnitDirectParents);
+            assertEquals(0, ldapUnitDirectParents.size());
+
+            DocumentModel unitEntry = unitSession.getEntry("subunit");
+            assertNotNull(unitEntry);
+            assertEquals("subunit", unitEntry.getId());
+            assertEquals("subunit", unitEntry.getProperty(GROUP_SCHEMANAME,
+                    "groupname"));
+
+            ldapUnitDirectChildren = (List<String>) unitEntry.getProperty(
+                    GROUP_SCHEMANAME, "ldapUnitDirectChildren");
+            assertNotNull(ldapUnitDirectChildren);
+            assertEquals(0, ldapUnitDirectChildren.size());
+
+            ldapUnitDirectParents = (List<String>) unitEntry.getProperty(
+                    GROUP_SCHEMANAME, "ldapUnitDirectParents");
+            assertNotNull(ldapUnitDirectParents);
+            assertEquals(1, ldapUnitDirectParents.size());
+            assertTrue(ldapUnitDirectParents.contains("subgroup"));
+
+        } finally {
+            session.close();
+            unitSession.close();
         }
     }
 
@@ -667,7 +756,7 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
                 // 2 dynamic groups
                 assertEquals(4, entries.size());
             } else {
-                assertEquals(2, entries.size());
+                assertEquals(6, entries.size());
             }
         } finally {
             session.close();
@@ -974,6 +1063,14 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
         } finally {
             dir.close();
         }
+    }
+
+    public void testQueryEmptyString() throws Exception {
+        Session session = getLDAPDirectory("userDirectory").getSession();
+        Map<String, Serializable> filter = new HashMap<String, Serializable>();
+        filter.put("cn", "");
+        List<DocumentModel> docs = session.query(filter);
+        assertNotNull(docs);
     }
 
 }
