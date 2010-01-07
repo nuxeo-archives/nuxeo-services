@@ -43,7 +43,6 @@ import org.nuxeo.ecm.core.api.NuxeoGroup;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.core.api.impl.NuxeoGroupImpl;
-import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.Session;
@@ -368,7 +367,7 @@ public class UserManagerImpl implements UserManager {
             // Create a default admin if needed
             if (defaultRootLogin != null
                     && defaultRootLogin.equals(principal.getName())) {
-                virtualGroups.add(SecurityConstants.ADMINISTRATORS);
+                virtualGroups.add(getAdministratorsGroupId());
             }
             principal.setVirtualGroups(virtualGroups);
         }

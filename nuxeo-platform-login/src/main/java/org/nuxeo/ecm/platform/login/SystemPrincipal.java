@@ -28,6 +28,8 @@ import java.util.List;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.LoginComponent;
 
 /**
@@ -39,7 +41,7 @@ public class SystemPrincipal implements NuxeoPrincipal {
 
     private static final char[] SYS_PASSWORD = null;
 
-    private static final List<String> SYS_GROUPS = Collections.unmodifiableList(Arrays.asList(SecurityConstants.ADMINISTRATORS));
+    private static final List<String> SYS_GROUPS = Collections.unmodifiableList(Arrays.asList(getAdministratorsGroupId()));
 
     private static final List<String> SYS_ROLES = Collections.unmodifiableList(new ArrayList<String>());
 
@@ -178,4 +180,13 @@ public class SystemPrincipal implements NuxeoPrincipal {
         return false;
     }
 
+    public static String getAdministratorsGroupId() {
+        UserManager userManager;
+        try {
+            userManager = Framework.getService(UserManager.class);
+        } catch (Exception e) {
+            return SecurityConstants.ADMINISTRATORS;
+        }
+        return userManager.getAdministratorsGroupId();
+    }
 }

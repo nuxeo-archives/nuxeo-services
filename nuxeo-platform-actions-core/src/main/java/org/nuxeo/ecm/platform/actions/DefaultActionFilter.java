@@ -31,8 +31,9 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.platform.actions.elcache.CachedJEXLManager;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.expression.Context;
 import org.nuxeo.runtime.expression.JexlExpression;
 
@@ -200,8 +201,15 @@ public class DefaultActionFilter implements ActionFilter {
             // default check when there is not context yet
             if (principal != null) {
                 List<String> groups = principal.getGroups();
+                UserManager userManager;
+                try {
+                    userManager = Framework.getService(UserManager.class);
+                } catch (Exception e) {
+                    log.error(e);
+                    return false;
+                }
                 if (groups != null
-                        && groups.contains(SecurityConstants.ADMINISTRATORS)) {
+                        && groups.contains(userManager.getAdministratorsGroupId())) {
                     return true;
                 }
             }
