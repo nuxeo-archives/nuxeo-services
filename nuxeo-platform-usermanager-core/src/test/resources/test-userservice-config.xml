@@ -40,6 +40,7 @@
         <parentGroupsField>parentg</parentGroupsField>
         <listingMode>search_oh_yeah</listingMode>
       </groups>
+      <administratorsGroupId>defadmgr</administratorsGroupId>
       <defaultAdministratorId>tehroot</defaultAdministratorId>
       <defaultGroup>defgr</defaultGroup>
       <userSortField>name</userSortField>

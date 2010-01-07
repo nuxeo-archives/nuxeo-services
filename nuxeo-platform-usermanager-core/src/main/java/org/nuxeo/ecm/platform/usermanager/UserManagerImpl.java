@@ -101,6 +101,8 @@ public class UserManagerImpl implements UserManager {
 
     private String defaultGroup;
 
+    private String adminGroupId;
+
     private String defaultRootLogin;
 
     private String userSortField;
@@ -122,6 +124,7 @@ public class UserManagerImpl implements UserManager {
 
     public void setConfiguration(UserManagerDescriptor descriptor) {
         defaultGroup = descriptor.defaultGroup;
+        adminGroupId = descriptor.adminGroupId;
         defaultRootLogin = descriptor.rootLogin;
         userSortField = descriptor.userSortField;
         groupSortField = descriptor.groupSortField;
@@ -216,6 +219,10 @@ public class UserManagerImpl implements UserManager {
 
     public String getDefaultGroup() {
         return defaultGroup;
+    }
+
+    public String getAdministratorsGroupId() {
+        return adminGroupId;
     }
 
     public Pattern getUserPasswordPattern() {

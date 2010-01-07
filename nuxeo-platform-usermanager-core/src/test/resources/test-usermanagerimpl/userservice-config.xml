@@ -30,10 +30,24 @@
             <value>group1</value>
           </propertyList>
         </virtualUser>
+        <virtualUser id="MyRealAdmin" searchable="false">
+          <password>secret</password>
+          <property name="firstName">My Real</property>
+          <property name="lastName">Administrator</property>
+          <!-- test that this invalid property does not compromise
+            the other properties setting -->
+          <property name="foo">bar</property>
+          <group>defadmgr</group>
+          <!-- test list properties, see how it goes with groups -->
+          <propertyList name="groups">
+            <value>members</value>
+          </propertyList>
+        </virtualUser>
       </users>
       <groups>
         <directory>groupDirectory</directory>
       </groups>
+      <administratorsGroupId>defadmgr</administratorsGroupId>
       <defaultAdministratorId>tehroot</defaultAdministratorId>
       <defaultGroup>defgr</defaultGroup>
       <userListingMode>search_only</userListingMode>

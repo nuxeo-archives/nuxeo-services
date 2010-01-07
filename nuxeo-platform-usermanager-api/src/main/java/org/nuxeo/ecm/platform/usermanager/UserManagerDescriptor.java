@@ -29,6 +29,7 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.platform.usermanager.UserManager.MatchType;
 
 @XObject(value = "userManager")
@@ -44,6 +45,9 @@ public class UserManagerDescriptor implements Serializable {
 
     @XNode("defaultAdministratorId")
     protected String rootLogin;
+
+    @XNode("administratorsGroupId")
+    protected String adminGroupId = SecurityConstants.ADMINISTRATORS;
 
     @XNode("userSortField")
     protected String userSortField;
@@ -144,6 +148,9 @@ public class UserManagerDescriptor implements Serializable {
         }
         if (other.defaultGroup != null) {
             defaultGroup = other.defaultGroup;
+        }
+        if (SecurityConstants.ADMINISTRATORS.equals(adminGroupId)) {
+            adminGroupId = other.adminGroupId;
         }
         if (other.rootLogin != null) {
             rootLogin = other.rootLogin;

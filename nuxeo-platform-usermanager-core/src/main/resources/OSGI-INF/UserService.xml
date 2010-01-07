@@ -51,6 +51,7 @@
             <virtualUser id="ExistingVirtualUser" remove="true"/>
           </users>
           <defaultAdministratorId>admin</defaultAdministratorId>
+          <administratorsGroupId>admin</administratorsGroupId>
           <userSortField>sn</userSortField>
           <userPasswordPattern>^[a-zA-Z0-9]{5,}$</userPasswordPattern>
           <groups>

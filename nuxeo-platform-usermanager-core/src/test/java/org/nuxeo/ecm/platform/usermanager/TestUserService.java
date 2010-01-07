@@ -56,6 +56,7 @@ public class TestUserService extends NXRuntimeTestCase {
         assertEquals("search_oh_yeah", userManager.getGroupListingMode());
         assertEquals("tehroot", fum.rootLogin);
         assertEquals("defgr", userManager.getDefaultGroup());
+        assertEquals("defadmgr", userManager.getAdministratorsGroupId());
         assertEquals("name", userManager.getUserSortField());
         assertEquals("sn", fum.groupSortField);
         assertEquals("somedir", fum.userDirectoryName);
@@ -119,6 +120,7 @@ public class TestUserService extends NXRuntimeTestCase {
         assertEquals("search_only", userManager.getUserListingMode());
         assertEquals("search_oh_yeah", userManager.getGroupListingMode());
         assertEquals("defgr", userManager.getDefaultGroup());
+        assertEquals("defadmgr", userManager.getAdministratorsGroupId());
         assertEquals("sn", fum.groupSortField);
         // anonymous user removed
         assertNull(fum.anonymousUser);

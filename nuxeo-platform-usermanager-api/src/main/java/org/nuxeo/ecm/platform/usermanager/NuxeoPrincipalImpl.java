@@ -38,7 +38,6 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.DataModelImpl;
 import org.nuxeo.ecm.core.api.impl.DocumentModelImpl;
 import org.nuxeo.ecm.core.api.model.PropertyException;
-import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -360,7 +359,14 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
     }
 
     public boolean isAdministrator() {
-        return isMemberOf(SecurityConstants.ADMINISTRATORS);
+        UserManager userManager;
+        try {
+            userManager = Framework.getService(UserManager.class);
+        } catch (Exception e) {
+            log.error(e);
+            return false;
+        }
+        return isMemberOf(userManager.getAdministratorsGroupId());
     }
 
     public boolean isAnonymous() {

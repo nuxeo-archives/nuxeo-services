@@ -1,3 +1,4 @@
 groupname, description
 "members","Group of users with read access rights"
 "administrators","Group of users with adminstrative rights"
+"defadmgr","Group of administrators thanks to overriden conf"

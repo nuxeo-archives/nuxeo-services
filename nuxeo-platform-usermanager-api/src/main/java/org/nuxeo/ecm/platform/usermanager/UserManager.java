@@ -254,6 +254,8 @@ public interface UserManager extends Serializable {
 
     String getDefaultGroup();
 
+    String getAdministratorsGroupId();
+
     String getGroupListingMode() throws ClientException;
 
     /**

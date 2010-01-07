@@ -111,7 +111,7 @@ public class TestUserManager extends NXRuntimeTestCase {
         assertEquals("Administrator", principal.getLastName());
         assertNull(principal.getCompany());
         assertTrue(principal.isMemberOf("administrators"));
-        assertTrue(principal.isAdministrator());
+        assertFalse(principal.isAdministrator());
 
         principal = userManager.getPrincipal("MyCustomMember");
         assertNotNull(principal);
@@ -127,6 +127,12 @@ public class TestUserManager extends NXRuntimeTestCase {
         assertTrue(principal.isMemberOf("members"));
         // group1 does not exist => not here
         assertFalse(principal.isMemberOf("group1"));
+
+        principal = userManager.getPrincipal("MyRealAdmin");
+        assertNotNull(principal);
+        assertTrue(principal.isMemberOf("members"));
+        // administratorGroupId is defined to defadmgr
+        assertTrue(principal.isAdministrator());
     }
 
     public void testSearchAnonymous() throws Exception {

@@ -51,6 +51,8 @@ public class FakeUserManagerImpl implements UserManager {
 
     String defaultGroup;
 
+    String adminGroupId;
+
     String userSortField;
 
     String groupSortField;
@@ -105,6 +107,14 @@ public class FakeUserManagerImpl implements UserManager {
 
     public void setDefaultGroup(String defaultGroup) {
         this.defaultGroup = defaultGroup;
+    }
+
+    public String getAdministratorsGroupId() {
+        return adminGroupId;
+    }
+
+    public void setAdministratorsGroupId(String adminGroupId) {
+        this.adminGroupId = adminGroupId;
     }
 
     public String getUserSortField() {
@@ -261,6 +271,7 @@ public class FakeUserManagerImpl implements UserManager {
 
     public void setConfiguration(UserManagerDescriptor descriptor) {
         setDefaultGroup(descriptor.defaultGroup);
+        setAdministratorsGroupId(descriptor.adminGroupId);
         setRootLogin(descriptor.rootLogin);
         setUserSortField(descriptor.userSortField);
         setGroupSortField(descriptor.groupSortField);

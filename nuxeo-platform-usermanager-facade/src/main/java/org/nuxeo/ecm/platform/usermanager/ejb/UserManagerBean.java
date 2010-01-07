@@ -121,6 +121,10 @@ public class UserManagerBean implements UserManager {
         return getUserManager().getDefaultGroup();
     }
 
+    public String getAdministratorsGroupId() {
+        return getUserManager().getAdministratorsGroupId();
+    }
+
     public String getUserSortField() throws ClientException {
         try {
             return getUserManager().getUserSortField();
