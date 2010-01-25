@@ -36,6 +36,9 @@ public class LDAPServerDescriptor {
 
     public String bindDn;
 
+    @XNode("connectionTimeout")
+    public int connectionTimeout = 10000; // timeout after 10 seconds
+
     @XNode("poolingEnabled")
     public boolean poolingEnabled = true;
 
@@ -92,4 +95,11 @@ public class LDAPServerDescriptor {
         return poolingEnabled;
     }
 
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
 }
