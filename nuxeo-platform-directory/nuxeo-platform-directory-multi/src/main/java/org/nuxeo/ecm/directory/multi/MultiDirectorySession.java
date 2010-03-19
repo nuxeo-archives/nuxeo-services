@@ -21,6 +21,7 @@ package org.nuxeo.ecm.directory.multi;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -272,14 +273,14 @@ public class MultiDirectorySession extends BaseSession {
                 subDirectoryInfos.add(subDirectoryInfo);
 
                 if (dirIsAuth) {
-                    if (authDirectoryInfo != null) {
-                        throw new DirectoryException(
-                                String.format(
-                                        "Directory '%s' source '%s' has two subdirectories "
-                                                + "with a password field, '%s' and '%s'",
-                                        directory.getName(), source.name,
-                                        authDirectoryInfo.dirName, dirName));
-                    }
+//                    if (authDirectoryInfo != null) {
+//                        throw new DirectoryException(
+//                                String.format(
+//                                        "Directory '%s' source '%s' has two subdirectories "
+//                                                + "with a password field, '%s' and '%s'",
+//                                        directory.getName(), source.name,
+//                                        authDirectoryInfo.dirName, dirName));
+//                    }
                     authDirectoryInfo = subDirectoryInfo;
                 }
                 if (!dirIsOptional) {
@@ -292,12 +293,12 @@ public class MultiDirectorySession extends BaseSession {
                                 + "with a password field", directory.getName(),
                         source.name));
             }
-            if (!hasRequiredDir) {
-                throw new DirectoryException(String.format(
-                        "Directory '%s' source '%s' only has optional subdirectories: "
-                                + "no directory can be used has a reference.",
-                        directory.getName(), source.name));
-            }
+//            if (!hasRequiredDir) {
+//                throw new DirectoryException(String.format(
+//                        "Directory '%s' source '%s' only has optional subdirectories: "
+//                                + "no directory can be used has a reference.",
+//                        directory.getName(), source.name));
+//            }
             newSourceInfos.add(new SourceInfo(source, subDirectoryInfos,
                     authDirectoryInfo));
         }
@@ -411,7 +412,7 @@ public class MultiDirectorySession extends BaseSession {
     }
 
     public DocumentModel getEntry(String id, boolean fetchReferences)
-            throws DirectoryException {
+    throws DirectoryException {
         init();
         boolean isReadOnlyEntry = isReadOnly();
         source_loop: for (SourceInfo sourceInfo : sourceInfos) {
@@ -429,18 +430,32 @@ public class MultiDirectorySession extends BaseSession {
                     isReadOnlyEntry = true;
                 }
                 for (Entry<String, String> e : dirInfo.toSource.entrySet()) {
+                    String key = e.getValue();
+                    Object lastValue = map.get(key);
+                    Object newValue = null;
+
                     if (entry != null) {
                         try {
-                            map.put(e.getValue(), entry.getProperty(
-                                    dirInfo.dirSchemaName, e.getKey()));
+                            newValue = entry.getProperty(dirInfo.dirSchemaName, e.getKey());
                         } catch (ClientException e1) {
                             throw new DirectoryException(e1);
                         }
+                    } 
+                    if ( newValue == null ) {
+                        if (lastValue == null) {
+                            map.put(key, dirInfo.defaultEntry.get(e.getKey()));
+                        }
+                    } else if (lastValue == null) {
+                        map.put(key,newValue);
                     } else {
-                        // fill with default values for this directory
-                        if (!map.containsKey(e.getValue())) {
-                            map.put(e.getValue(),
-                                    dirInfo.defaultEntry.get(e.getKey()));
+                        assert lastValue.getClass().isAssignableFrom(newValue.getClass()) : lastValue + " is not assignable from " + newValue;
+                        if (lastValue instanceof Collection<?>) {
+                            ((Collection) lastValue).addAll((Collection)newValue);
+                        } else {
+                            if (!lastValue.equals(newValue)) {
+                                log.warn("sources does not have sames values for " + key);
+                            }
+
                         }
                     }
                 }
@@ -455,6 +470,7 @@ public class MultiDirectorySession extends BaseSession {
         }
         return null;
     }
+
 
     @SuppressWarnings("boxing")
     public DocumentModelList getEntries() throws ClientException {
@@ -776,13 +792,13 @@ public class MultiDirectorySession extends BaseSession {
                 }
             }
             // intersection, ignore entries not in all subdirectories
-            final int numdirs = sourceInfo.subDirectoryInfos.size();
-            for (Iterator<String> it = maps.keySet().iterator(); it.hasNext();) {
-                final String id = it.next();
-                if (counts.get(id) != numdirs) {
-                    it.remove();
-                }
-            }
+//            final int numdirs = sourceInfo.subDirectoryInfos.size();
+//            for (Iterator<String> it = maps.keySet().iterator(); it.hasNext();) {
+//                final String id = it.next();
+//                if (counts.get(id) != numdirs) {
+//                    it.remove();
+//                }
+//            }
             // now create entries
             ((ArrayList<?>) results).ensureCapacity(results.size()
                     + maps.size());

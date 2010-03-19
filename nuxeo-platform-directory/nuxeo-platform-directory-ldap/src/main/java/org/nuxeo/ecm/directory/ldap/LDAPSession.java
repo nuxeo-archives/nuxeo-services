@@ -276,8 +276,9 @@ public class LDAPSession extends BaseSession implements EntrySource {
         }
         SearchResult result = results.next();
         if (results.hasMore()) {
-            log.debug("More than one entry found for: " + id);
-            throw new DirectoryException("more than one entry found for: " + id);
+//            log.debug("More than one entry found for: " + id);
+//            throw new DirectoryException("more than one entry found for: " + id);
+            log.warn("More than one entry found for " + id);
         }
         return result;
     }
