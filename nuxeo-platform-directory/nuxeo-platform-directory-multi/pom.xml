@@ -8,6 +8,7 @@
     <version>5.3.1-P4XML</version>
   </parent>
 
+  <version>5.3-P4XML</version>
   <artifactId>nuxeo-platform-directory-multi</artifactId>
   <name>Nuxeo Directory - Multi-Directory Storage</name>
   <description>Nuxeo Enterprise Platform: multi-storage implementation for

@@ -10,6 +10,7 @@
     <version>5.3.1-P4XML</version>
   </parent>
 
+  <version>5.3-P4XML</version>
   <artifactId>nuxeo-platform-directory-ldap</artifactId>
   <name>Nuxeo Directory - LDAP Storage</name>
   <description>
