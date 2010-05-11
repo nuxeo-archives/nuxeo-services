@@ -159,14 +159,21 @@ public class NuxeoRequestControllerFilter implements Filter {
             }
             throw new ServletException(e);
         } finally {
-            if (txStarted) {
-                TransactionHelper.commitOrRollbackTransaction();
-            }
-            if (sessionSynched) {
-                simpleReleaseSyncOnSession(httpRequest);
-            }
-            if (log.isDebugEnabled()) {
-                log.debug(doFormatLogMessage(httpRequest,"Exiting NuxeoRequestControler filter"));
+            try {
+                if (txStarted) {
+                    try {
+                        TransactionHelper.commitOrRollbackTransaction();
+                    } catch (Exception e) {
+                        log.error("Web transaction rollbacked", e);
+                    }
+                }
+            } finally {
+                if (sessionSynched) {
+                    simpleReleaseSyncOnSession(httpRequest);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug(doFormatLogMessage(httpRequest, "Exiting NuxeoRequestControler filter"));
+                }
             }
         }
     }
