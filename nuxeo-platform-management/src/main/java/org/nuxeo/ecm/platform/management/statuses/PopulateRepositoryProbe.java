@@ -16,6 +16,8 @@
  */
 package org.nuxeo.ecm.platform.management.statuses;
 
+import java.util.Calendar;
+
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.management.api.Probe;
@@ -27,15 +29,16 @@ import org.nuxeo.ecm.core.management.storage.DocumentStoreSessionRunner;
  */
 public class PopulateRepositoryProbe implements Probe {
 
-    public static class Runner extends DocumentStoreSessionRunner {
+        public static class Runner extends DocumentStoreSessionRunner {
 
         protected String info;
 
         @Override
         public void run() throws ClientException {
             DocumentModel rootDocument = session.getRootDocument();
-            DocumentModel doc = session.createDocumentModel(rootDocument.getPathAsString(), PopulateRepositoryProbe.class.getSimpleName(), "File");
-            doc.setProperty("dublincore", "title", String.format("%s:%x", PopulateRepositoryProbe.class.getSimpleName(), this.hashCode()));
+            String name = String.format("%s:%x", PopulateRepositoryProbe.class.getSimpleName(), Calendar.getInstance().getTimeInMillis());
+            DocumentModel doc = session.createDocumentModel(rootDocument.getPathAsString(), name, "File");
+            doc.setProperty("dublincore", "title", name);
             doc.setProperty("uid", "major_version", 1L);
             doc = session.createDocument(doc);
             session.removeDocument(doc.getRef());
@@ -44,6 +47,7 @@ public class PopulateRepositoryProbe implements Probe {
 
     }
 
+    @Override
     public ProbeStatus run() {
         Runner runner = new Runner();
         try {
