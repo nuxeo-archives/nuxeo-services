@@ -586,7 +586,7 @@ public class LDAPSession extends BaseSession implements EntrySource {
                     schemaName, id, fieldMap);
             return docModel;
         } catch (PropertyException e) {
-            log.error(e);
+            log.error(e, e);
             return null;
         }
     }
@@ -833,17 +833,30 @@ public class LDAPSession extends BaseSession implements EntrySource {
         Properties env = (Properties) directory.getContextProperties().clone();
         env.put(Context.SECURITY_PRINCIPAL, dn);
         env.put(Context.SECURITY_CREDENTIALS, password);
+
+        InitialDirContext authenticationDirContext = null;
         try {
             // creating a context does a bind
             log.debug(String.format("LDAP bind dn='%s'", dn));
             // noinspection ResultOfObjectAllocationIgnored
-            new InitialDirContext(env);
+            authenticationDirContext = new InitialDirContext(env);
             log.debug("Bind succeeded, authentication ok");
             return true;
         } catch (NamingException e) {
             log.debug("Bind failed: " + e.getMessage());
             // authentication failed
             return false;
+        } finally {
+            try {
+                if (authenticationDirContext != null) {
+                    authenticationDirContext.close();
+                }
+            } catch (NamingException e) {
+                log.error(
+                        "Error closing authentication context when biding dn "
+                                + dn, e);
+                return false;
+            }
         }
     }
 

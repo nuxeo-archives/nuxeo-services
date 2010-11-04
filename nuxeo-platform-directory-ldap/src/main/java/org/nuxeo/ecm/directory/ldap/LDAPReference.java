@@ -20,11 +20,14 @@
 package org.nuxeo.ecm.directory.ldap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.naming.CompositeName;
+import javax.naming.Name;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -40,6 +43,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuxeo.common.utils.StringUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
+import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.directory.AbstractReference;
@@ -47,6 +51,8 @@ import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.DirectoryFieldMapper;
 import org.nuxeo.ecm.directory.Session;
+import org.nuxeo.ecm.directory.ldap.filter.FilterExpressionCorrector;
+import org.nuxeo.ecm.directory.ldap.filter.FilterExpressionCorrector.FilterJobs;
 
 import com.sun.jndi.ldap.LdapURL;
 
@@ -58,9 +64,9 @@ import com.sun.jndi.ldap.LdapURL;
  * <li>the static attribute strategy where a multi-valued attribute store the
  * exhaustive list of distinguished names of the refereed entries (eg. the
  * uniqueMember attribute of the groupOfUniqueNames objectclass)</li>
- * <li>the dynamic attribute strategy where a potentially multi-valued
- * attribute stores a ldap urls intensively describing the refereed LDAP entries
- * (eg. the memberURLs attribute of the groupOfURLs objectclass)</li>
+ * <li>the dynamic attribute strategy where a potentially multi-valued attribute
+ * stores a ldap urls intensively describing the refereed LDAP entries (eg. the
+ * memberURLs attribute of the groupOfURLs objectclass)</li>
  * </ul>
  *
  * Please note that both static and dynamic references are resolved in read mode
@@ -76,6 +82,9 @@ import com.sun.jndi.ldap.LdapURL;
 public class LDAPReference extends AbstractReference {
 
     private static final Log log = LogFactory.getLog(LDAPReference.class);
+
+    @XNodeList(value = "dynamicReference", type = LDAPDynamicReferenceDescriptor[].class, componentType = LDAPDynamicReferenceDescriptor.class)
+    private LDAPDynamicReferenceDescriptor[] dynamicReferences;
 
     @XNode("@forceDnConsistencyCheck")
     public boolean forceDnConsistencyCheck;
@@ -139,6 +148,10 @@ public class LDAPReference extends AbstractReference {
                     fieldName, sourceDirectoryName, backendFieldId));
             return backendFieldId;
         }
+    }
+
+    public List<LDAPDynamicReferenceDescriptor> getDynamicAttributes() {
+        return Arrays.asList(dynamicReferences);
     }
 
     public String getDynamicAttributeId() {
@@ -573,6 +586,16 @@ public class LDAPReference extends AbstractReference {
                 targetSession.close();
             }
         }
+
+        /*
+         * This kind of reference is not supported because Active Directory use
+         * filter expression not yet supported by LDAPFilterMatcher. See
+         * NXP-4562
+         */
+        if (this.dynamicReferences != null && this.dynamicReferences.length > 0) {
+            log.error("This kind of reference is not supported.");
+        }
+
         return new ArrayList<String>(sourceIds);
     }
 
@@ -681,8 +704,10 @@ public class LDAPReference extends AbstractReference {
                                                 attributeIdsToCollect, ", "),
                                         this));
                             }
+
+                            Name name = new CompositeName().add(targetDn);
                             entry = targetSession.dirContext.getAttributes(
-                                    targetDn, attributeIdsToCollect);
+                                    name, attributeIdsToCollect);
                         } catch (NamingException e) {
                             log.warn(String.format(
                                     "could not find target '%s' while fetching reference '%s'",
@@ -748,53 +773,59 @@ public class LDAPReference extends AbstractReference {
                         // upperlevel than directory elements
                         continue;
                     } else {
-                        // combine the ldapUrl search query with target
-                        // directory own constraints
-                        SearchControls scts = new SearchControls();
 
-                        // use the most specific scope
-                        scts.setSearchScope(Math.min(scope,
-                                targetDirconfig.getSearchScope()));
+                        // Search for references elements
+                        targetIds.addAll(getReferencedElements(attributes,
+                                directoryDn, linkDn, ldapUrl.getFilter(), scope));
 
-                        // only fetch the ids of the targets
-                        scts.setReturningAttributes(new String[] { targetSession.idAttribute });
-
-                        // combine the filter of the target directory with the
-                        // provided filter if any
-                        String filter = ldapUrl.getFilter();
-                        String targetFilter = targetDirconfig.getSearchFilter();
-                        if (filter == null || filter.length() == 0) {
-                            filter = targetFilter;
-                        } else if (targetFilter != null
-                                && targetFilter.length() > 0) {
-                            filter = String.format("(&(%s)(%s))", targetFilter,
-                                    filter);
-                        }
-
-                        // perform the request and collect the ids
-                        if (log.isDebugEnabled()) {
-                            log.debug(String.format(
-                                    "LDAPReference.getLdapTargetIds(%s): LDAP search dn='%s' "
-                                            + " filter='%s' scope='%s' [%s]",
-                                    attributes, linkDn, filter,
-                                    scts.getSearchScope(), this));
-                        }
-                        NamingEnumeration<SearchResult> results = targetSession.dirContext.search(
-                                linkDn, filter, scts);
-                        while (results.hasMore()) {
-                            // NXP-2461: check that id field is filled
-                            Attribute attr = results.next().getAttributes().get(
-                                    targetSession.idAttribute);
-                            if (attr != null) {
-                                String collectedId = attr.get().toString();
-                                if (collectedId != null) {
-                                    targetIds.add(collectedId);
-                                }
-                            }
-
-                        }
                     }
                 }
+            }
+
+            if (this.dynamicReferences != null
+                    && this.dynamicReferences.length > 0) {
+
+                // Only the first Dynamic Reference is used
+                LDAPDynamicReferenceDescriptor dynAtt = this.dynamicReferences[0];
+
+                Attribute baseDnsAttribute = attributes.get(dynAtt.baseDN);
+                Attribute filterAttribute = attributes.get(dynAtt.filter);
+
+                if (baseDnsAttribute != null && filterAttribute != null) {
+
+                    // Get the BaseDN value from the descriptor
+                    NamingEnumeration<?> baseDns = baseDnsAttribute.getAll();
+                    String linkDnValue = baseDns.next().toString();
+                    linkDnValue = pseudoNormalizeDn(linkDnValue);
+
+                    // Get the filter value from the descriptor
+                    NamingEnumeration<?> filters = filterAttribute.getAll();
+                    String filterValue = filters.next().toString();
+
+                    // Get the scope value from the descriptor
+                    int scope = "subtree".equalsIgnoreCase(dynAtt.type) ? SearchControls.SUBTREE_SCOPE
+                            : SearchControls.ONELEVEL_SCOPE;
+
+                    String directoryDn = pseudoNormalizeDn(targetDirconfig.getSearchBaseDn());
+
+                    // if the dns match, and if the link dn is pointing to
+                    // elements that at upperlevel than directory elements
+                    if ((linkDnValue.endsWith(directoryDn) || directoryDn.endsWith(linkDnValue))
+                            && !(directoryDn.endsWith(linkDnValue)
+                                    && linkDnValue.length() < directoryDn.length() && scope == SearchControls.ONELEVEL_SCOPE)) {
+
+                        // Correct the filter expression
+                        filterValue = FilterExpressionCorrector.correctFilter(
+                                filterValue, FilterJobs.CORRECT_NOT);
+
+                        // Search for references elements
+                        targetIds.addAll(getReferencedElements(attributes,
+                                directoryDn, linkDnValue, filterValue, scope));
+
+                    }
+
+                }
+
             }
             // return merged attributes
             return new ArrayList<String>(targetIds);
@@ -803,6 +834,80 @@ public class LDAPReference extends AbstractReference {
         } finally {
             targetSession.close();
         }
+    }
+
+    /**
+     * Retrieve the elements referenced by the filter/BaseDN/Scope request.
+     *
+     * @param attributes Attributes of the referencer element
+     * @param directoryDn Dn of the Directory
+     * @param linkDnValue Dn specified in the parent
+     * @param filterValue Filter expression specified in the parent
+     * @param scope scope for the search
+     * @return The list of the referenced elements.
+     * @throws DirectoryException
+     * @throws NamingException
+     */
+    private Set<String> getReferencedElements(Attributes attributes,
+            String directoryDn, String linkDn, String filter, int scope)
+            throws DirectoryException, NamingException {
+
+        Set<String> targetIds = new TreeSet<String>();
+
+        LDAPDirectoryDescriptor targetDirconfig = getTargetDirectoryDescriptor();
+        LDAPDirectory targetDirectory = (LDAPDirectory) getTargetDirectory();
+        LDAPSession targetSession = (LDAPSession) targetDirectory.getSession();
+
+        // use the most specific scope between the one specified in the
+        // Directory and the specified in the Parent
+        String dn = directoryDn.endsWith(linkDn)
+                && directoryDn.length() > linkDn.length() ? directoryDn
+                : linkDn;
+
+        // combine the ldapUrl search query with target
+        // directory own constraints
+        SearchControls scts = new SearchControls();
+
+        // use the most specific scope
+        scts.setSearchScope(Math.min(scope, targetDirconfig.getSearchScope()));
+
+        // only fetch the ids of the targets
+        scts.setReturningAttributes(new String[] { targetSession.idAttribute });
+
+        // combine the filter of the target directory with the
+        // provided filter if any
+        String targetFilter = targetDirconfig.getSearchFilter();
+        if (filter == null || filter.length() == 0) {
+            filter = targetFilter;
+        } else if (targetFilter != null && targetFilter.length() > 0) {
+            filter = String.format("(&(%s)(%s))", targetFilter, filter);
+        }
+
+        // perform the request and collect the ids
+        if (log.isDebugEnabled()) {
+            log.debug(String.format(
+                    "LDAPReference.getLdapTargetIds(%s): LDAP search dn='%s' "
+                            + " filter='%s' scope='%s' [%s]", attributes, dn,
+                    dn, scts.getSearchScope(), this));
+        }
+
+        Name name = new CompositeName().add(dn);
+        NamingEnumeration<SearchResult> results = targetSession.dirContext.search(
+                name, filter, scts);
+        while (results.hasMore()) {
+            // NXP-2461: check that id field is filled
+            Attribute attr = results.next().getAttributes().get(
+                    targetSession.idAttribute);
+            if (attr != null) {
+                String collectedId = attr.get().toString();
+                if (collectedId != null) {
+                    targetIds.add(collectedId);
+                }
+            }
+
+        }
+
+        return targetIds;
     }
 
     /**
