@@ -28,9 +28,9 @@ import org.hibernate.dialect.Dialect;
 
 /**
  * An SQL {@code column}.
- *
+ * 
  * @author Florent Guillaume
- *
+ * 
  */
 public class Column implements Serializable {
 
@@ -59,7 +59,7 @@ public class Column implements Serializable {
 
     /**
      * Creates a new column with the given name and SQL type.
-     *
+     * 
      * @param name the column name.
      * @param sqlType the SQL type.
      * @param key the associated field name.
@@ -73,6 +73,17 @@ public class Column implements Serializable {
         this.name = name;
     }
 
+    
+    public Column(String name, int sqlType, int length, String key) {
+        if (name == null) {
+            throw new IllegalArgumentException("name cannot be null");
+        }
+        this.sqlType = sqlType;
+        this.length= length;
+        this.key=key;
+        this.name = name;
+    }
+    
     public String getName() {
         return name;
     }

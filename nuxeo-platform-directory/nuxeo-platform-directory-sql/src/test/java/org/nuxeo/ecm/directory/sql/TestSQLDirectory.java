@@ -625,6 +625,48 @@ public class TestSQLDirectory extends SQLDirectoryTestCase {
         }
     }
 
+
+    
+    public void testStringCreateRestriction() throws Exception {
+        Session session = getSession();
+        try {
+            String schema = "user";
+            DocumentModel entry = BaseSession.createEntryModel(null, schema,
+                    null, null);
+
+            //test with a short string
+            String shortString=getStringOfLength(15);
+            entry.setProperty(schema, "username", shortString);
+            assertNull(session.getEntry(shortString));
+            session.createEntry(entry);
+            assertNotNull(session.getEntry(shortString));
+            session.deleteEntry(entry);
+            
+            //test with a long string
+            String longString=getStringOfLength(8000);
+            entry.setProperty(schema, "username", longString);
+            assertNull(session.getEntry(longString));
+            session.createEntry(entry);
+            assertNotNull(session.getEntry(shortString));
+        } finally {
+            session.close();
+        }
+    }
+    
+    private static String getStringOfLength(int length) {
+        StringBuilder sB = new StringBuilder(length);
+        int counter=0;
+        char letter='0';
+        while  (counter++ <length) {
+                if(letter++=='z'){
+                    sB.append("\n");
+                    letter='0';
+                }
+                sB.append(letter);
+            }
+        return sB.toString();
+    }
+    
     public void testHasEntry() throws Exception {
         Session session = getSession();
         try {
@@ -634,5 +676,4 @@ public class TestSQLDirectory extends SQLDirectoryTestCase {
             session.close();
         }
     }
-
 }

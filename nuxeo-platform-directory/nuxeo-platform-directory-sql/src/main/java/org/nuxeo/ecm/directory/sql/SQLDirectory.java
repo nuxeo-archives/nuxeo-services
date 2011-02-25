@@ -117,17 +117,15 @@ public class SQLDirectory extends AbstractDirectory {
                 // list of fields that are actually stored in the table of the
                 // current directory and not read from an external reference
                 storedFieldNames.add(fieldName);
-
-                int fieldSqlType;
+                Column column;
                 try {
-                    fieldSqlType = FieldMapper.getSqlField(f.getType().getName());
+                    column = FieldMapper.getSqlColumn(f.getName().toString(),f.getType().getName(),f.getLength());
                 } catch (DirectoryException e) {
                     log.warn(String.format(
                             "Field %s of type %s in SQLDirectory %s is not supported and thus ignored",
                             fieldName, f.getType().getName(), config.getName()));
                     continue;
                 }
-                Column column = new Column(fieldName, fieldSqlType, null);
                 if (fieldName.equals(config.getIdField())) {
                     column.setPrimary(true);
                     hasPrimary = true;

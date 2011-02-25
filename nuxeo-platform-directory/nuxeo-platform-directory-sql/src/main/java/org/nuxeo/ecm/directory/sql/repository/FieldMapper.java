@@ -47,4 +47,21 @@ public class FieldMapper {
         }
     }
 
+    public static Column getSqlColumn(String name, String typeName, int length) throws DirectoryException {
+        Integer fieldSqlType=null;
+        if (typeName.equals("integer")) {
+            fieldSqlType=Types.INTEGER;
+        } else if (typeName.equals("long")) {
+            fieldSqlType=Types.INTEGER;
+        } else if (typeName.equals("string")) {
+            fieldSqlType=Types.VARCHAR;
+        } else if (typeName.equals("date")) {
+            fieldSqlType=Types.TIMESTAMP;
+        } else {
+            throw new DirectoryException("no SQL type mapping for: " + typeName);
+        }
+        Column column = new Column(name, fieldSqlType, null);
+        return column;
+    }
+
 }
