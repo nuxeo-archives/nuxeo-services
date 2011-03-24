@@ -28,6 +28,12 @@ public final class NXAuthConstants {
     public static final String USERIDENT_KEY = "org.nuxeo.ecm.login.identity";
     public static final String LOGINCONTEXT_KEY = "org.nuxeo.ecm.login.context";
 
+    public static final String REQUESTED_URL = "requestedUrl";
+
+    public static final String LOGIN_MISSING = "loginMissing";
+
+    public static final String LOGIN_FAILED = "loginFailed";
+    
     public static final String LOGIN_ERROR = "org.nuxeo.ecm.login.error";
     public static final String LOGOUT_PAGE = "logout";
 
@@ -36,6 +42,10 @@ public final class NXAuthConstants {
 
     public static final String ERROR_AUTHENTICATION_FAILED = "authentication.failed";
     public static final String ERROR_USERNAME_MISSING = "username.missing";
+
+    public static final String START_PAGE_SAVE_KEY = "Nuxeo5_Start_Page";
+
+    public static final String SSO_INITIAL_URL_REQUEST_KEY = "sso.initial.url.request";
 
     // Constant utility class.
     private NXAuthConstants() {

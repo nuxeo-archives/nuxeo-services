@@ -22,6 +22,8 @@ package org.nuxeo.ecm.platform.ui.web.auth;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,8 +73,6 @@ import org.nuxeo.runtime.api.Framework;
 public class NuxeoAuthenticationFilter implements Filter {
 
     // protected static final String EJB_LOGIN_DOMAIN = "nuxeo-system-login";
-
-    public static final String START_PAGE_SAVE_KEY = "Nuxeo5_Start_Page";
 
     public static final String DEFAULT_START_PAGE = "nxstartup.faces";
 
@@ -367,7 +367,10 @@ public class NuxeoAuthenticationFilter implements Filter {
                     if (redirected
                             && httpRequest.getParameter(NXAuthConstants.FORM_SUBMITTED_MARKER) == null) {
                         return;
-                    }
+                    } 
+                } else {
+                    targetPageURL = getSavedRequestedURL(httpRequest,
+                            httpResponse);
                 }
             }
 
@@ -441,7 +444,7 @@ public class NuxeoAuthenticationFilter implements Filter {
         }
 
         if (principal != null) {
-            if (targetPageURL != null) {
+            if (targetPageURL != null && targetPageURL.length() > 0) {
                 // forward to target page
                 String baseURL = service.getBaseURL(request);
 
@@ -574,31 +577,96 @@ public class NuxeoAuthenticationFilter implements Filter {
         }
 
         if (isStartPageValid(requestPage)) {
-            session.setAttribute(START_PAGE_SAVE_KEY, requestPage);
+            session.setAttribute(NXAuthConstants.START_PAGE_SAVE_KEY, requestPage);
             return true;
         }
 
         return false;
     }
 
-    protected static String getSavedRequestedURL(HttpServletRequest httpRequest) {
-        String requestedPage = httpRequest.getParameter(START_PAGE_SAVE_KEY);
-        if (requestedPage == null) {
-            HttpSession session = httpRequest.getSession(false);
-            if (session == null) {
-                return null;
+    public static String getRequestedUrl(HttpServletRequest httpRequest) {
+        String completeURI = httpRequest.getRequestURI();
+        String qs = httpRequest.getQueryString();
+        String context = httpRequest.getContextPath() + '/';
+        String requestPage = completeURI.substring(context.length());
+        if (qs != null && qs.length() > 0) {
+            // remove conversationId if present
+            if (qs.contains("conversationId")) {
+                qs = qs.replace("conversationId", "old_conversationId");
             }
-            requestedPage = (String) session.getAttribute(START_PAGE_SAVE_KEY);
-            if (requestedPage == null) {
-                return null;
-            }
-
-            // clean up session
-            session.removeAttribute(START_PAGE_SAVE_KEY);
+            requestPage = requestPage + '?' + qs;
         }
+        return requestPage;
+    }
+
+    protected static String getSavedRequestedURL(HttpServletRequest httpRequest) {
+        String requestedPage = null;
+        if (httpRequest.getParameter(NXAuthConstants.REQUESTED_URL) == null) {
+            HttpSession session = httpRequest.getSession(false);
+            if (session != null) {
+                requestedPage = (String) session.getAttribute(NXAuthConstants.START_PAGE_SAVE_KEY);
+                if (requestedPage != null) {
+                    // clean up session
+                    session.removeAttribute(NXAuthConstants.START_PAGE_SAVE_KEY);
+                }
+            }
+        } else {
+            requestedPage = httpRequest.getParameter(NXAuthConstants.REQUESTED_URL);
+        }
+        
+        String requestedUrl = httpRequest.getParameter(NXAuthConstants.REQUESTED_URL);
+        if (requestedUrl != null && !"".equals(requestedUrl)) {
+            try {
+                return URLDecoder.decode(requestedUrl, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                log.error("Unable to get the requestedUrl parameter" + e);
+            }
+        }
+        
         return requestedPage;
     }
 
+    protected static String getSavedRequestedURL(
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+
+        String requestedPage = null;
+
+        if (httpRequest.getParameter(NXAuthConstants.START_PAGE_SAVE_KEY) == null) {
+            HttpSession session = httpRequest.getSession(false);
+            if (session != null) {
+                requestedPage = (String) session.getAttribute(NXAuthConstants.START_PAGE_SAVE_KEY);
+                if (requestedPage != null) {
+                    // clean up session
+                    session.removeAttribute(NXAuthConstants.START_PAGE_SAVE_KEY);
+                }
+            }
+        } else {
+            requestedPage = httpRequest.getParameter(NXAuthConstants.START_PAGE_SAVE_KEY);
+        }
+
+        // if SSO authentication cookie store the initial URL asked
+
+        Cookie[] cookies = httpRequest.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (NXAuthConstants.SSO_INITIAL_URL_REQUEST_KEY.equals(cookie.getName())) {
+                    requestedPage = cookie.getValue();
+                    cookie.setMaxAge(0);
+                }
+            }
+        }
+
+        String requestedUrl = httpRequest.getParameter(NXAuthConstants.REQUESTED_URL);
+        if (requestedUrl != null && !"".equals(requestedUrl)) {
+            try {
+                return URLDecoder.decode(requestedUrl, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                log.error("Unable to get the requestedUrl parameter" + e);
+            }
+        }
+        return requestedPage;
+    }
+    
     protected static boolean isStartPageValid(String startPage) {
         for (String prefix : validStartURLs) {
             if (startPage.startsWith(prefix)) {

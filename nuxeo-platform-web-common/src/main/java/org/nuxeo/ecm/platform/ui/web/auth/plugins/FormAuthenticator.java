@@ -20,15 +20,20 @@
 package org.nuxeo.ecm.platform.ui.web.auth.plugins;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
 import org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants;
 import org.nuxeo.ecm.platform.ui.web.auth.interfaces.NuxeoAuthenticationPlugin;
@@ -47,18 +52,37 @@ public class FormAuthenticator implements NuxeoAuthenticationPlugin {
             HttpServletResponse httpResponse, String baseURL) {
         try {
             log.debug("Forward to Login Screen");
+            Map<String, String> parameters = new HashMap<String, String>();
+            String redirectUrl = baseURL + loginPage;
+            Enumeration<String> paramNames = httpRequest.getParameterNames();
+            while (paramNames.hasMoreElements()) {
+                String name = paramNames.nextElement();
+                String value = httpRequest.getParameter(name);
+                parameters.put(name, value);
+            }
+            HttpSession session = httpRequest.getSession(false);
+            String requestedUrl = null;
+            if (session != null) {
+                requestedUrl = (String) httpRequest.getSession(false).getAttribute(
+                        NXAuthConstants.START_PAGE_SAVE_KEY);
+            }
+            if (requestedUrl != null && !requestedUrl.equals("")) {
+                parameters.put(NXAuthConstants.REQUESTED_URL,
+                        URLEncoder.encode(requestedUrl, "UTF-8"));
+            }
             String loginError = (String) httpRequest.getAttribute(NXAuthConstants.LOGIN_ERROR);
-            if (loginError == null) {
-                httpResponse.sendRedirect(baseURL + loginPage);
-            } else {
+            if (loginError != null) {
                 if (NXAuthConstants.ERROR_USERNAME_MISSING.equals(loginError)) {
-                    httpResponse.sendRedirect(baseURL + loginPage
-                            + "?loginMissing=true");
+                    parameters.put(NXAuthConstants.LOGIN_MISSING, "true");
                 } else {
-                    httpResponse.sendRedirect(baseURL + loginPage
-                            + "?loginFailed=true");
+                    parameters.put(NXAuthConstants.LOGIN_FAILED, "true");
                 }
             }
+            // avoid resending the password in clear !!!
+            parameters.remove(passwordKey);
+            redirectUrl = URIUtils.addParametersToURIQuery(redirectUrl,
+                    parameters);
+            httpResponse.sendRedirect(redirectUrl);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
