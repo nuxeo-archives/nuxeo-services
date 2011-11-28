@@ -180,12 +180,6 @@ public class TypeRegistry extends ExtensionRegistry<Type> {
             oldType.setView(view);
         }
 
-        // overwrite old layout
-        FieldWidget[] layout = newType.getLayout();
-        if (layout != null && layout.length != 0) {
-            oldType.setLayout(layout);
-        }
-
         Map<String, Layouts> layouts = newType.getLayouts();
         if (layouts != null) {
             Map<String, Layouts> layoutsMerged = new HashMap<String, Layouts>(

@@ -108,9 +108,6 @@ public class Type implements Serializable {
     @XNodeList(value = "actions/action", type = String[].class, componentType = String.class)
     protected String[] actions;
 
-    @XNodeList(value = "layout/widget", type = FieldWidget[].class, componentType = FieldWidget.class)
-    protected FieldWidget[] layout;
-
     @XNodeMap(value = "layouts", key = "@mode", type = HashMap.class, componentType = Layouts.class)
     Map<String, Layouts> layouts;
 
@@ -183,20 +180,6 @@ public class Type implements Serializable {
 
     public void setCategory(String category) {
         this.category = category;
-    }
-
-    /**
-     * @deprecated use {@link #getLayouts(String)} instead, using mode
-     *             {@link BuiltinModes#ANY}.
-     */
-    @Deprecated
-    public FieldWidget[] getLayout() {
-        return layout;
-    }
-
-    @Deprecated
-    public void setLayout(FieldWidget[] layout) {
-        this.layout = layout;
     }
 
     /**

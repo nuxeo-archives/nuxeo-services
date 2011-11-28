@@ -19,6 +19,8 @@
 
 package org.nuxeo.ecm.platform.types;
 
+import static org.nuxeo.ecm.platform.types.localconfiguration.UITypesConfigurationConstants.UI_TYPES_CONFIGURATION_FACET;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,8 +42,6 @@ import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Extension;
 
-import static org.nuxeo.ecm.platform.types.localconfiguration.UITypesConfigurationConstants.UI_TYPES_CONFIGURATION_FACET;
-
 public class TypeService extends DefaultComponent implements TypeManager {
 
     public static final ComponentName ID = new ComponentName(
@@ -55,18 +55,14 @@ public class TypeService extends DefaultComponent implements TypeManager {
 
     private TypeRegistry typeRegistry;
 
-    private TypeWidgetRegistry typeWidgetRegistry;
-
     @Override
     public void activate(ComponentContext context) {
         typeRegistry = new TypeRegistry();
-        typeWidgetRegistry = new TypeWidgetRegistry();
     }
 
     @Override
     public void deactivate(ComponentContext context) {
         typeRegistry = null;
-        typeWidgetRegistry = null;
     }
 
     @Override
@@ -74,8 +70,6 @@ public class TypeService extends DefaultComponent implements TypeManager {
         String xp = extension.getExtensionPoint();
         if (xp.equals("types")) {
             typeRegistry.registerExtension(extension);
-        } else if (xp.equals("default_layout")) {
-            registerTypeWidgetExtension(extension);
         }
     }
 
@@ -85,35 +79,10 @@ public class TypeService extends DefaultComponent implements TypeManager {
         if (xp.equals("types")) {
             typeRegistry.unregisterExtension(extension);
         }
-        if (xp.equals("default_layout")) {
-            unregisterTypeWidgetExtension(extension);
-        }
-    }
-
-    public void registerTypeWidgetExtension(Extension extension) {
-        Object[] contribs = extension.getContributions();
-        log.warn("The type widget contribution system is deprecated, "
-                + "use the new layout system instead");
-        for (Object contrib : contribs) {
-            TypeWidget typeWidget = (TypeWidget) contrib;
-            typeWidgetRegistry.addTypeWidget(typeWidget);
-        }
-    }
-
-    public void unregisterTypeWidgetExtension(Extension extension) {
-        Object[] contribs = extension.getContributions();
-        for (Object contrib : contribs) {
-            TypeWidget typeWidget = (TypeWidget) contrib;
-            typeWidgetRegistry.removeTypeWidget(typeWidget.getFieldtype());
-        }
     }
 
     public TypeRegistry getTypeRegistry() {
         return typeRegistry;
-    }
-
-    public TypeWidgetRegistry getTypeWidgetRegistry() {
-        return typeWidgetRegistry;
     }
 
     // Service implementation for TypeManager interface

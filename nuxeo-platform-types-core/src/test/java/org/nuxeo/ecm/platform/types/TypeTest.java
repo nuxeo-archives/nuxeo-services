@@ -54,21 +54,6 @@ public class TypeTest extends NXRuntimeTestCase {
         assertEquals("action_id2", actions[1]);
         assertEquals("action_id3", actions[2]);
 
-        // old layouts for BBB
-        FieldWidget[] layout = type.getLayout();
-        assertEquals(3, layout.length);
-        assertEquals("jsf1", layout[0].getJsfComponent());
-        assertEquals("schema1", layout[0].getSchemaName());
-        assertEquals("name1", layout[0].getFieldName());
-
-        assertEquals("jsf2", layout[1].getJsfComponent());
-        assertEquals("schema2", layout[1].getSchemaName());
-        assertEquals("name2", layout[1].getFieldName());
-
-        assertEquals("jsf3", layout[2].getJsfComponent());
-        assertEquals("schema3", layout[2].getSchemaName());
-        assertEquals("name3", layout[2].getFieldName());
-
         // new layouts
         String[] anyLayouts = type.getLayouts(BuiltinModes.ANY);
         assertEquals(1, anyLayouts.length);
@@ -115,14 +100,6 @@ public class TypeTest extends NXRuntimeTestCase {
         assertTrue(hidden.contains("edit"));
     }
 
-    public void testDefaultLayoutExtensionPoint() {
-        Map<String, String> map = typeService.getTypeWidgetRegistry().getMap();
-        assertEquals(2, map.size());
-        assertEquals("def_jsf1", map.get("java.lang.String"));
-        assertEquals("def_jsf2", map.get("java.lang.Double"));
-        assertNull(map.get("xxx"));
-    }
-
     public void testDeploymentOverride() throws Exception {
         Collection<Type> types = typeService.getTypeRegistry().getTypes();
         assertEquals(5, types.size());
@@ -154,10 +131,6 @@ public class TypeTest extends NXRuntimeTestCase {
         SubType subType = allowed.get("MyHiddenDocType");
         List<String> hidden = subType.getHidden();
         assertEquals(0, hidden.size());
-
-        // old layout override done
-        FieldWidget[] layout = type.getLayout();
-        assertEquals(2, layout.length);
 
         // new layout override done
         Map<String, Layouts> layouts = type.getLayouts();
@@ -205,7 +178,6 @@ public class TypeTest extends NXRuntimeTestCase {
     public void testLayoutOverride() throws Exception {
         Type type = typeService.getTypeRegistry().getType("DocTypeWithLayout");
         assertEquals("doc type with layout", type.getLabel());
-        assertEquals(2, type.getLayout().length);
         assertEquals(2, type.getLayouts().size());
         assertEquals(1,
                 type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
@@ -219,7 +191,6 @@ public class TypeTest extends NXRuntimeTestCase {
         type = typeService.getTypeRegistry().getType("DocTypeWithLayout");
         assertEquals("overridden doc type, but layout left unchanged",
                 type.getLabel());
-        assertEquals(2, type.getLayout().length);
         assertEquals(2, type.getLayouts().size());
         assertEquals(1,
                 type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);

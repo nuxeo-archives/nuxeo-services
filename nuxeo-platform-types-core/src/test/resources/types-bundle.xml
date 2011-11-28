@@ -8,9 +8,5 @@
 		<object class="org.nuxeo.ecm.platform.types.Type"/>
 	</extension-point>
   
-    <extension-point name="default_layout">
-      <object class="org.nuxeo.ecm.platform.types.TypeWidget"/>
-    </extension-point>
-
 </component>
 
