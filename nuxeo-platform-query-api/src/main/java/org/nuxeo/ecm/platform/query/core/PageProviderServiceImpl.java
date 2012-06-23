@@ -89,7 +89,7 @@ public class PageProviderServiceImpl extends DefaultComponent implements
         if (properties != null) {
             allProps.putAll(properties);
         }
-        pageProvider.setProperties(properties);
+        pageProvider.setProperties(allProps);
         pageProvider.setSortable(desc.isSortable());
         pageProvider.setParameters(parameters);
 
