@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser General Public License
@@ -12,36 +12,20 @@
  * Lesser General Public License for more details.
  *
  * Contributors:
- *     Nuxeo - initial API and implementation
- *
- * $Id: JOOoConvertPluginImpl.java 18651 2007-05-13 20:28:53Z sfermigier $
+ *     Anahide Tchertchian
  */
-
-package org.nuxeo.ecm.platform.types;
+package org.nuxeo.ecm.directory.service;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 
-// TODO find a better name
 /**
- * @deprecated use the nuxeo-platform-layouts-core module descriptors instead
+ * @since 5.6
  */
-@Deprecated
-@XObject("widget")
-public class TypeWidget {
+@XObject("directory")
+public class MockMemoryDirectoryDescriptor {
 
-    @XNode("@jsfcomponent")
-    String jsfComponent;
-
-    @XNode("@fieldtype")
-    String fieldtype;
-
-    public String getFieldtype() {
-        return fieldtype;
-    }
-
-    public String getJsfComponent() {
-        return jsfComponent;
-    }
+    @XNode("@name")
+    public String name;
 
 }

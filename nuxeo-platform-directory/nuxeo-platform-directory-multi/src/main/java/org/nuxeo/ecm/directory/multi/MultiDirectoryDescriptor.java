@@ -25,7 +25,6 @@ import org.nuxeo.common.xmap.annotation.XObject;
 
 /**
  * @author Florent Guillaume
- *
  */
 @XObject(value = "directory")
 public class MultiDirectoryDescriptor implements Cloneable {
@@ -55,23 +54,26 @@ public class MultiDirectoryDescriptor implements Cloneable {
     protected SourceDescriptor[] sources;
 
     public void merge(MultiDirectoryDescriptor other) {
-        if (other.schemaName != null) {
+        merge(other, false);
+    }
+
+    public void merge(MultiDirectoryDescriptor other, boolean overwrite) {
+        if (other.schemaName != null || overwrite) {
             schemaName = other.schemaName;
         }
-        if (other.idField != null) {
+        if (other.idField != null || overwrite) {
             idField = other.idField;
         }
-        if (other.passwordField != null) {
+        if (other.passwordField != null || overwrite) {
             passwordField = other.passwordField;
         }
-        if (other.readOnly != null) {
+        if (other.readOnly != null || overwrite) {
             readOnly = other.readOnly;
         }
-        if (other.querySizeLimit != null) {
+        if (other.querySizeLimit != null || overwrite) {
             querySizeLimit = other.querySizeLimit;
         }
-        if (other.sources != null) {
-            // TODO allow replacement of existing sources
+        if (other.sources != null || overwrite) {
             if (sources == null) {
                 sources = other.sources;
             } else {
@@ -83,6 +85,27 @@ public class MultiDirectoryDescriptor implements Cloneable {
                 sources = s;
             }
         }
+    }
+
+    /**
+     * @since 5.6
+     */
+    public MultiDirectoryDescriptor clone() {
+        MultiDirectoryDescriptor clone = new MultiDirectoryDescriptor();
+        clone.name = name;
+        clone.schemaName = schemaName;
+        clone.idField = idField;
+        clone.passwordField = passwordField;
+        clone.readOnly = readOnly;
+        clone.querySizeLimit = querySizeLimit;
+        clone.remove = remove;
+        if (sources != null) {
+            clone.sources = new SourceDescriptor[sources.length];
+            for (int i = 0; i < sources.length; i++) {
+                clone.sources[i] = sources[i].clone();
+            }
+        }
+        return clone;
     }
 
 }
