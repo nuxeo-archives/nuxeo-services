@@ -33,6 +33,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
+import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.io.DocumentPipe;
 import org.nuxeo.ecm.core.io.DocumentReader;
 import org.nuxeo.ecm.core.io.DocumentWriter;
@@ -48,7 +49,6 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-
 import com.google.inject.Inject;
 
 /**
@@ -123,6 +123,7 @@ public class TestExportedZipImporterPlugin {
 
         sourceWS = ws;
         destWS = ws2;
+        Framework.getLocalService(EventService.class).waitForAsyncCompletion();
     }
 
     @After
@@ -176,6 +177,8 @@ public class TestExportedZipImporterPlugin {
                 "myfile");
         coreSession.removeDocument(subFile.getRef());
         coreSession.save();
+
+        Framework.getLocalService(EventService.class).waitForAsyncCompletion();
 
         FileManager fm = Framework.getService(FileManager.class);
         Blob blob = new FileBlob(archiveFile);
