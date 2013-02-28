@@ -44,6 +44,7 @@ public class TestWSRemotingSessionManager extends SQLRepositoryTestCase {
 
     WSRemotingSessionManager service;
 
+    @Override
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -55,8 +56,7 @@ public class TestWSRemotingSessionManager extends SQLRepositoryTestCase {
     protected void deployRepositoryContrib() throws Exception {
         super.deployRepositoryContrib();
         deployBundle("org.nuxeo.ecm.platform.ws");
-        deployContrib("org.nuxeo.ecm.platform.tests",
-                "login-config.xml");
+        deployContrib("org.nuxeo.ecm.platform.tests", "login-config.xml");
     }
 
     @Test
@@ -112,39 +112,46 @@ public class TestWSRemotingSessionManager extends SQLRepositoryTestCase {
     @Test
     public void testSnapshotProperties() throws ClientException {
         openSession();
-        DocumentModel rootDocument = session.getRootDocument();
-        DocumentModel doc = session.createDocumentModel(
-                rootDocument.getPathAsString(), "youps", "File");
-        doc.setProperty("dublincore", "title", "huum");
-        doc = session.createDocument(doc);
-        session.save();
-        String docid = doc.getId();
-        NuxeoRemotingBean remoting = new NuxeoRemotingBean();
-        String sid = remoting.connect("Administrator", "Administrator");
-        DocumentSnapshot snapshot = remoting.getDocumentSnapshot(sid, docid);
-        DocumentProperty[] props = snapshot.getNoBlobProperties();
-        Comparator<DocumentProperty> propsComparator = new Comparator<DocumentProperty>() {
+        try {
+            DocumentModel rootDocument = session.getRootDocument();
+            DocumentModel doc = session.createDocumentModel(
+                    rootDocument.getPathAsString(), "youps", "File");
+            doc.setProperty("dublincore", "title", "huum");
+            doc = session.createDocument(doc);
+            session.save();
+            String docid = doc.getId();
+            NuxeoRemotingBean remoting = new NuxeoRemotingBean();
+            String sid = remoting.connect("Administrator", "Administrator");
+            try {
+                DocumentSnapshot snapshot = remoting.getDocumentSnapshot(sid,
+                        docid);
+                DocumentProperty[] props = snapshot.getNoBlobProperties();
+                Comparator<DocumentProperty> propsComparator = new Comparator<DocumentProperty>() {
 
-            @Override
-            public int compare(DocumentProperty o1, DocumentProperty o2) {
-                return o1.getName().compareTo(o2.getName());
+                    @Override
+                    public int compare(DocumentProperty o1, DocumentProperty o2) {
+                        return o1.getName().compareTo(o2.getName());
+                    }
+
+                };
+                Arrays.sort(props, propsComparator);
+                // check for system properties
+                int lci = Arrays.binarySearch(props, new DocumentProperty(
+                        "lifeCycleState", null), propsComparator);
+                assertTrue(lci > 0);
+                assertEquals("lifeCycleState:project", props[lci].toString());
+
+                // check for dublin core properties
+                int tti = Arrays.binarySearch(props, new DocumentProperty(
+                        "dc:title", null), propsComparator);
+                assertTrue(tti > 0);
+                assertEquals("dc:title:huum", props[tti].toString());
+            } finally {
+                remoting.disconnect(sid);
             }
-
-        };
-        Arrays.sort(props, propsComparator);
-        // check for system properties
-        int lci = Arrays.binarySearch(props, new DocumentProperty("lifeCycleState", null), propsComparator);
-        assertTrue(lci > 0);
-        assertEquals("lifeCycleState:project", props[lci].toString());
-
-        // check for dublin core properties
-        int tti =  Arrays.binarySearch(props, new DocumentProperty("dc:title", null), propsComparator);
-        assertTrue(tti > 0);
-        assertEquals("dc:title:huum", props[tti].toString());
-
-        // cleanup
-        remoting.disconnect(sid);
-        closeSession();
+        } finally {
+            closeSession();
+        }
     }
 
 }

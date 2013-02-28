@@ -17,6 +17,7 @@
 package org.nuxeo.ecm.platform.ws;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -37,7 +38,7 @@ import org.nuxeo.ecm.platform.api.ws.session.WSRemotingSession;
 public class DocumentStateLoader implements DocumentLoader {
 
     protected static final Log log = LogFactory.getLog(DocumentStateLoader.class);
-    
+
     @Override
     public void fillProperties(DocumentModel doc,
             List<DocumentProperty> props, WSRemotingSession rs) throws ClientException {
@@ -46,6 +47,10 @@ public class DocumentStateLoader implements DocumentLoader {
         DocumentModel.DocumentModelRefresh dmr = repo.refreshDocument(ref, DocumentModel.REFRESH_STATE, null);
         for (Field f:dmr.getClass().getDeclaredFields()) {
             final String fn = f.getName();
+            if (!Modifier.isPublic(f.getModifiers())) {
+                log.warn("Ignoring field " + f);
+                continue;
+            }
             try {
                 final Object fv = f.get(dmr);
                 if (fv != null) {
@@ -53,7 +58,7 @@ public class DocumentStateLoader implements DocumentLoader {
                     props.add(prop);
                 }
             } catch (Exception e) {
-                log.error("Cannot fetch value for " + ref + ":" + fn, e);
+                throw new ClientException("Cannot fetch value for " + ref + ":" + fn, e);
             }
         }
     }

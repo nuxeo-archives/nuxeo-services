@@ -40,6 +40,7 @@ public class TestRegisterPlacefulService extends NXRuntimeTestCase {
         super.setUp();
         deployBundle("org.nuxeo.ecm.core.persistence");
         deployBundle("org.nuxeo.ecm.platform.placeful.core");
+        deployTestContrib("org.nuxeo.ecm.platform.placeful.core", "nxplaceful-tests.xml");
         deployTestContrib("org.nuxeo.ecm.platform.placeful.core", "nxplacefulservice-configs-tests.xml");
         placefulService = (PlacefulService) runtime.getComponent(PlacefulService.ID);
         fireFrameworkStarted();
