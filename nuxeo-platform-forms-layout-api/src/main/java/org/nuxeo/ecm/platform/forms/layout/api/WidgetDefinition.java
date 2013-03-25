@@ -57,6 +57,16 @@ public interface WidgetDefinition extends Serializable {
     void setType(String type);
 
     /**
+     * @since 5.7
+     */
+    String getTypeCategory();
+
+    /**
+     * @since 5.7
+     */
+    void setTypeCategory(String typeCat);
+
+    /**
      * Returns the list of fields managed by this widget.
      */
     FieldDefinition[] getFieldDefinitions();

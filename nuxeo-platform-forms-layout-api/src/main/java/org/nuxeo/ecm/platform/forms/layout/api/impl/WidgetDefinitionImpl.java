@@ -45,6 +45,8 @@ public class WidgetDefinitionImpl implements WidgetDefinition {
 
     protected String type;
 
+    protected String typeCategory;
+
     protected Map<String, String> labels;
 
     protected Map<String, String> helpLabels;
@@ -350,6 +352,14 @@ public class WidgetDefinitionImpl implements WidgetDefinition {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getTypeCategory() {
+        return typeCategory;
+    }
+
+    public void setTypeCategory(String typeCategory) {
+        this.typeCategory = typeCategory;
     }
 
     @Override
