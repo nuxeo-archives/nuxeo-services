@@ -34,10 +34,15 @@ import org.nuxeo.ecm.platform.ui.web.auth.interfaces.NuxeoAuthenticationPlugin;
 public class BasicAuthenticator implements NuxeoAuthenticationPlugin {
 
     protected static final String REALM_NAME_KEY = "RealmName";
+
     protected static final String FORCE_PROMPT_KEY = "ForcePromptURL";
+
     protected static final String AUTO_PROMPT_KEY = "AutoPrompt";
+
     protected static final String PROMPT_URL_KEY = "PromptUrl";
+
     protected static final String DEFAULT_REALMNAME = "Nuxeo 5";
+
     protected static final String BA_HEADER_NAME = "WWW-Authenticate";
 
     protected String realName;
@@ -68,11 +73,11 @@ public class BasicAuthenticator implements NuxeoAuthenticationPlugin {
             int idx = auth.indexOf(' ');
             String b64userPassword = auth.substring(idx + 1);
             byte[] clearUp = Base64.decode(b64userPassword);
-            String userPassword = new String(clearUp);
-            String[] up = userPassword.split(":");
-            if (up.length==2) {
-                String username = up[0];
-                String password = up[1];
+            String userCredentials = new String(clearUp);
+            int idxOfColon = userCredentials.indexOf(':');
+            if (idxOfColon > 0 && idxOfColon < userCredentials.length() - 1) {
+                String username = userCredentials.substring(0, idxOfColon);
+                String password = userCredentials.substring(idxOfColon + 1);
                 return new UserIdentificationInfo(username, password);
             } else {
                 return null;
@@ -105,7 +110,8 @@ public class BasicAuthenticator implements NuxeoAuthenticationPlugin {
         }
 
         if (parameters.containsKey(AUTO_PROMPT_KEY)) {
-            autoPrompt = parameters.get(AUTO_PROMPT_KEY).equalsIgnoreCase("true");
+            autoPrompt = parameters.get(AUTO_PROMPT_KEY).equalsIgnoreCase(
+                    "true");
         }
 
         forcePromptURLs = new ArrayList<String>();
