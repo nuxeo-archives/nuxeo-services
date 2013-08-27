@@ -14,6 +14,9 @@
 
 package org.nuxeo.ecm.platform.dublincore;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener.DISABLE_DUBLINCORE_LISTENER;
 
 import java.util.Arrays;
@@ -21,11 +24,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
-
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DataModel;
@@ -59,6 +60,7 @@ public class TestDublinCoreStorage extends SQLRepositoryTestCase {
         deployContrib("org.nuxeo.ecm.platform.dublincore",
                 "OSGI-INF/nxdublincore-service.xml");
         deployBundle("org.nuxeo.ecm.core.event");
+        deployBundle("org.nuxeo.ecm.platform.thumbnail");
 
         EventServiceAdmin eventAdmin = Framework.getService(EventServiceAdmin.class);
         eventAdmin.setBulkModeEnabled(true);
