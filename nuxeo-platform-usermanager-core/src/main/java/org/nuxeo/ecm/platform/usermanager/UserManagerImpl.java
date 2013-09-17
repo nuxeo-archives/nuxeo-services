@@ -72,7 +72,9 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
 
     public static final String USERMANAGER_TOPIC = "usermanager";
 
-    /** Used by JaasCacheFlusher. */
+    /**
+     * Used by JaasCacheFlusher.
+     */
     public static final String USERCHANGED_EVENT_ID = "user_changed";
 
     public static final String USERCREATED_EVENT_ID = "user_created";
@@ -81,7 +83,9 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
 
     public static final String USERMODIFIED_EVENT_ID = "user_modified";
 
-    /** Used by JaasCacheFlusher. */
+    /**
+     * Used by JaasCacheFlusher.
+     */
     public static final String GROUPCHANGED_EVENT_ID = "group_changed";
 
     public static final String GROUPCREATED_EVENT_ID = "group_created";
@@ -937,7 +941,8 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
         DocumentModel newGroupModel = getBareGroupModel();
         newGroupModel.setProperty(groupSchemaName, groupIdField,
                 group.getName());
-        newGroupModel.setProperty(groupSchemaName, groupLabelField, group.getLabel());
+        newGroupModel.setProperty(groupSchemaName, groupLabelField,
+                group.getLabel());
         newGroupModel.setProperty(groupSchemaName, groupMembersField,
                 group.getMemberUsers());
         newGroupModel.setProperty(groupSchemaName, groupSubGroupsField,
@@ -1075,7 +1080,9 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
                 : null;
     }
 
-    /*************** MULTI-TENANT-IMPLEMENTATION ************************/
+    /**
+     * ************ MULTI-TENANT-IMPLEMENTATION ***********************
+     */
 
     public DocumentModelList searchUsers(Map<String, Serializable> filter,
             Set<String> fulltext, Map<String, String> orderBy,
@@ -1102,6 +1109,10 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
                         userSchemaName, orderBy));
             }
 
+            for (DocumentModel entry : entries) {
+                emptyPasswordField(entry, userSchemaName,
+                        userDir.getPasswordField());
+            }
             return entries;
         } finally {
             if (userDir != null) {
@@ -1257,12 +1268,24 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
         Session userDir = null;
         try {
             userDir = dirService.open(userDirectoryName, context);
-            return userDir.getEntry(userName);
+            DocumentModel entry = userDir.getEntry(userName);
+            emptyPasswordField(entry, userSchemaName,
+                    userDir.getPasswordField());
+            return entry;
         } finally {
             if (userDir != null) {
                 userDir.close();
             }
         }
+    }
+
+    protected void emptyPasswordField(DocumentModel userModel,
+            String schemaName, String passwordField) throws ClientException {
+        if (userModel == null || passwordField == null) {
+            return;
+        }
+
+        userModel.setProperty(schemaName, passwordField, null);
     }
 
     protected Map<String, Serializable> cloneMap(Map<String, Serializable> map) {
@@ -1384,6 +1407,9 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
 
             syncDigestAuthPassword(clearUsername, clearPassword);
 
+            emptyPasswordField(userModel, userSchemaName,
+                    userDir.getPasswordField());
+
             notifyUserChanged(userId);
             notify(userId, USERCREATED_EVENT_ID);
             return userModel;
@@ -1417,6 +1443,9 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager {
             userDir.commit();
 
             syncDigestAuthPassword(clearUsername, clearPassword);
+
+            emptyPasswordField(userModel, userSchemaName,
+                    userDir.getPasswordField());
 
             notifyUserChanged(userId);
             notify(userId, USERMODIFIED_EVENT_ID);

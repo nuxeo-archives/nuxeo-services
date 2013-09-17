@@ -108,6 +108,7 @@ public class TestUserManager extends NXRuntimeTestCase {
     private DocumentModel getUser(String userId) throws Exception {
         DocumentModel newUser = userManager.getBareUserModel();
         newUser.setProperty("user", "username", userId);
+        newUser.setProperty("user", "password", userId);
         return newUser;
     }
 
@@ -1082,5 +1083,26 @@ public class TestUserManager extends NXRuntimeTestCase {
         assertTrue(up1.getGroups().contains(groupNameWithSpaces.trim()));
 
     }
+
+    @Test
+    public void testUserReturnedWithoutPassword() throws Exception {
+        DocumentModel doc = getUser("test");
+        assertEquals("test", doc.getProperty("user", "password"));
+        doc = userManager.createUser(doc);
+        assertNull(doc.getProperty("user", "password"));
+
+        NuxeoPrincipal principal = userManager.getPrincipal("test");
+        assertNull(principal.getPassword());
+
+        List<DocumentModel> users = userManager.searchUsers("test");
+        assertEquals(1, users.size());
+        assertNull(users.get(0).getProperty("user", "password"));
+
+        doc.setProperty("user", "password", "secret");
+        assertEquals("secret", doc.getProperty("user", "password"));
+        userManager.updateUser(doc);
+        assertNull(doc.getProperty("user", "password"));
+    }
+
 
 }
