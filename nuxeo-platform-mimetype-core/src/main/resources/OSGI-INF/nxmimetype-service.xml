@@ -283,15 +283,8 @@
       </mimetypes>
       <extensions>
         <extension>xml</extension>
-      </extensions>
-    </mimetype>
-
-    <mimetype normalized="text/xml" binary="true" iconPath="graffle.png">
-      <mimetypes>
-        <mimetype>text/xml</mimetype>
-      </mimetypes>
-      <extensions>
         <extension>graffle</extension>
+        <extension>twb</extension>
       </extensions>
     </mimetype>
 
