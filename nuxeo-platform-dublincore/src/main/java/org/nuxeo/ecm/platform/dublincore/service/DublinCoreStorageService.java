@@ -52,7 +52,6 @@ public class DublinCoreStorageService extends DefaultComponent {
         } catch (ClientException e) {
             throw new ClientRuntimeException(e);
         }
-        addContributor(doc, event);
     }
 
     public void setModificationDate(DocumentModel doc,
@@ -72,6 +71,19 @@ public class DublinCoreStorageService extends DefaultComponent {
     }
 
     public void addContributor(DocumentModel doc, Event event) {
+        addContributor(doc, event, false);
+    }
+
+    /**
+     * Add contributor.
+     *
+     * @param doc the doc
+     * @param event the event
+     * @param creator should  we set the current user as the creator.
+     *
+     * @since 5.8
+     */
+    public void addContributor(DocumentModel doc, Event event, boolean creator) {
         Principal principal = event.getContext().getPrincipal();
         if (principal == null) {
             return;
@@ -99,11 +111,13 @@ public class DublinCoreStorageService extends DefaultComponent {
 
         List<String> contributorsList = new ArrayList<String>();
 
-        if (contributorsArray != null && contributorsArray.length > 0) {
+        final boolean hasContributor = contributorsArray != null && contributorsArray.length > 0;
+        if (hasContributor) {
             contributorsList = Arrays.asList(contributorsArray);
             // make it resizable
             contributorsList = new ArrayList<String>(contributorsList);
-        } else {
+        }
+        if (!hasContributor || creator) {
             // initialize creator too
             SchemaManager schemaMgr = Framework.getLocalService(SchemaManager.class);
             if (schemaMgr.getSchema("dublincore").getField("creator") != null) {
