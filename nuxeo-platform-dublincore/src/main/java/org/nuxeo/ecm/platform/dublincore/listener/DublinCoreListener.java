@@ -37,6 +37,7 @@ import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.platform.dublincore.NXDublinCore;
 import org.nuxeo.ecm.platform.dublincore.service.DublinCoreStorageService;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * Core Event Listener for updating DublinCore.
@@ -49,6 +50,13 @@ public class DublinCoreListener implements EventListener {
     private static final Log log = LogFactory.getLog(DublinCoreListener.class);
 
     public static final String DISABLE_DUBLINCORE_LISTENER = "disableDublinCoreListener";
+
+    public static final String RESET_AUTHOR_AND_CREATION_DATE_COPY = "nuxeo.core.copy.resetAuthorAndCreationDate";
+
+    private static boolean isResetAuthorAndCreationDateOnCopy() {
+        return Boolean.TRUE.equals(Boolean.valueOf(Framework.getProperty(
+                RESET_AUTHOR_AND_CREATION_DATE_COPY, "false")));
+    }
 
     /**
      * Core event notification.
@@ -121,7 +129,7 @@ public class DublinCoreListener implements EventListener {
             service.setCreationDate(doc, cEventDate, event);
             service.setModificationDate(doc, cEventDate, event);
             service.addContributor(doc, event);
-        } else if (eventId.equals(DOCUMENT_CREATED_BY_COPY)) {
+        } else if (eventId.equals(DOCUMENT_CREATED_BY_COPY) && isResetAuthorAndCreationDateOnCopy()) {
             service.setCreationDate(doc, cEventDate, event);
             service.setModificationDate(doc, cEventDate, event);
             service.addContributor(doc, event, true);
