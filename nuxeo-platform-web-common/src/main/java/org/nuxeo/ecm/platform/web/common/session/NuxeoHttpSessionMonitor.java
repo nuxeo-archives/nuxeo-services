@@ -20,6 +20,7 @@
 
 package org.nuxeo.ecm.platform.web.common.session;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -42,7 +49,7 @@ import org.nuxeo.runtime.management.counters.CounterHelper;
  * @author Tiry (tdelprat@nuxeo.com)
  * @since 5.4.2
  */
-public class NuxeoHttpSessionMonitor {
+public class NuxeoHttpSessionMonitor implements NuxeoSessionMonitor {
 
     public static final String REQUEST_COUNTER = "org.nuxeo.web.requests";
 
@@ -54,26 +61,34 @@ public class NuxeoHttpSessionMonitor {
 
     protected static NuxeoHttpSessionMonitor instance = new NuxeoHttpSessionMonitor();
 
-    protected long globalRequestCounter;
+    static {
+        try {
+            instance.registerSelf();
+        } catch (InstanceAlreadyExistsException | MBeanRegistrationException
+                | NotCompliantMBeanException | MalformedObjectNameException cause) {
+            log.error(
+                    "Cannot register http session monitor in platform mbean server",
+                    cause);
+        }
+    }
 
     public static NuxeoHttpSessionMonitor instance() {
         return instance;
     }
 
-    protected Map<String, SessionInfo> sessionTracker = new ConcurrentHashMap<String, SessionInfo>();
+    protected long globalRequestCounter;
 
-    protected void increaseRequestCounter() {
-        globalRequestCounter += 1;
-        if (globalRequestCounter == 1 || globalRequestCounter % REQUEST_COUNTER_STEP == 0) {
-            CounterHelper.setCounterValue(REQUEST_COUNTER, globalRequestCounter);
-        }
-    }
+    protected MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
-    public SessionInfo addEntry(HttpSession session) {
+    protected Map<String, SessionInfoImpl> sessionTracker = new ConcurrentHashMap<String, SessionInfoImpl>();
+
+    protected long totalSessionSizeAtLogout;
+
+    public SessionInfoImpl addEntry(HttpSession session) {
         if (session == null || session.getId() == null) {
             return null;
         }
-        SessionInfo si = new SessionInfo(session.getId());
+        SessionInfoImpl si = new SessionInfoImpl(session);
         sessionTracker.put(session.getId(), si);
         return si;
     }
@@ -81,7 +96,7 @@ public class NuxeoHttpSessionMonitor {
     public SessionInfo associatedUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null && session.getId() != null) {
-            SessionInfo si = sessionTracker.get(session.getId());
+            SessionInfoImpl si = sessionTracker.get(session.getId());
             if (si == null) {
                 si = addEntry(session);
             }
@@ -100,7 +115,7 @@ public class NuxeoHttpSessionMonitor {
         if (session == null || session.getId() == null) {
             return null;
         }
-        SessionInfo si = sessionTracker.get(session.getId());
+        SessionInfoImpl si = sessionTracker.get(session.getId());
         if (si == null) {
             si = addEntry(session);
         }
@@ -111,10 +126,116 @@ public class NuxeoHttpSessionMonitor {
         return si;
     }
 
+    @Override
+    public long getAllSessionSize() {
+        long result = 0;
+        try {
+            if (sessionTracker != null) {
+                for (SessionInfoImpl si : sessionTracker.values()) {
+                    result += si.getSessionSize();
+                }
+            }
+        } catch (Exception e) {
+            log.error("An error occured when computing getAllSessionSize", e);
+        }
+        return result;
+    }
+
+    @Override
+    public long getAllSessionStateSize() {
+        long result = 0;
+        try {
+            if (sessionTracker != null) {
+                for (SessionInfoImpl si : sessionTracker.values()) {
+                    result += si.getStateSize();
+                }
+            }
+        } catch (Exception e) {
+            log.error("An error occured when computing getAllSessionStateSize",
+                    e);
+        }
+        return result;
+    }
+
+    @Override
+    public long getGlobalRequestCounter() {
+        return globalRequestCounter;
+    }
+
+    public List<SessionInfoImpl> getSortedSessions() {
+
+        List<SessionInfoImpl> sortedSessions = new ArrayList<SessionInfoImpl>();
+        for (SessionInfoImpl si : getTrackedSessions()) {
+            if (si.getLoginName() != null) {
+                sortedSessions.add(si);
+            }
+        }
+        Collections.sort(sortedSessions);
+        return sortedSessions;
+    }
+
+    public List<SessionInfoImpl> getSortedSessions(long maxInactivity) {
+        List<SessionInfoImpl> sortedSessions = new ArrayList<SessionInfoImpl>();
+        for (SessionInfoImpl si : getTrackedSessions()) {
+            if (si.getLoginName() != null
+                    && si.getInactivityInS() < maxInactivity) {
+                sortedSessions.add(si);
+            }
+        }
+        Collections.sort(sortedSessions);
+        return sortedSessions;
+    }
+
+    @Override
+    public long getTotalSessionSizeAtLogout() {
+        return totalSessionSizeAtLogout;
+    }
+
+    public Collection<SessionInfoImpl> getTrackedSessions() {
+        return sessionTracker.values();
+    }
+
+    protected void increaseRequestCounter() {
+        globalRequestCounter += 1;
+        if (globalRequestCounter == 1
+                || globalRequestCounter % REQUEST_COUNTER_STEP == 0) {
+            CounterHelper.setCounterValue(REQUEST_COUNTER, globalRequestCounter);
+        }
+    }
+
+    protected void registerSelf() throws InstanceAlreadyExistsException,
+            MBeanRegistrationException, NotCompliantMBeanException,
+            MalformedObjectNameException {
+        mbs.registerMBean(this, new ObjectName(
+                "org.nuxeo:type=http-session-monitor"));
+    }
+
+    public void removeEntry(String sid) {
+        SessionInfo si = sessionTracker.remove(sid);
+        if (si != null && si.getLoginName() != null) {
+            totalSessionSizeAtLogout += si.getStateSize();
+            double totalSessionSizeAtLogoutInMB = totalSessionSizeAtLogout;
+            totalSessionSizeAtLogoutInMB = totalSessionSizeAtLogoutInMB / 8 / 1024 / 1024;
+            log.warn("totalSessionSizeAtLogout = "
+                    + totalSessionSizeAtLogoutInMB + " MB");
+            CounterHelper.decreaseCounter(SESSION_COUNTER);
+        }
+    }
+
+    @Override
+    public void resetTotalSessionSizeAtLogout() {
+        setTotalSessionSizeAtLogout(0);
+    }
+
+    public void setTotalSessionSizeAtLogout(
+            long totalSessionStateSizeAtLogout) {
+        this.totalSessionSizeAtLogout = totalSessionStateSizeAtLogout;
+    }
+
     public SessionInfo updateEntry(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null && session.getId() != null) {
-            SessionInfo si = sessionTracker.get(session.getId());
+            SessionInfoImpl si = sessionTracker.get(session.getId());
             if (si != null) {
                 si.updateLastAccessTime();
                 si.setLastAccessUrl(request.getRequestURI());
@@ -125,44 +246,6 @@ public class NuxeoHttpSessionMonitor {
             }
         }
         return null;
-    }
-
-    public void removeEntry(String sid) {
-        SessionInfo si = sessionTracker.remove(sid);
-        if (si != null && si.getLoginName() != null) {
-            CounterHelper.decreaseCounter(SESSION_COUNTER);
-        }
-    }
-
-    public Collection<SessionInfo> getTrackedSessions() {
-        return sessionTracker.values();
-    }
-
-    public List<SessionInfo> getSortedSessions() {
-
-        List<SessionInfo> sortedSessions = new ArrayList<SessionInfo>();
-        for (SessionInfo si : getTrackedSessions()) {
-            if (si.getLoginName() != null) {
-                sortedSessions.add(si);
-            }
-        }
-        Collections.sort(sortedSessions);
-        return sortedSessions;
-    }
-
-    public List<SessionInfo> getSortedSessions(long maxInactivity) {
-        List<SessionInfo> sortedSessions = new ArrayList<SessionInfo>();
-        for (SessionInfo si : getTrackedSessions()) {
-            if (si.getLoginName() != null && si.getInactivityInS() < maxInactivity) {
-                sortedSessions.add(si);
-            }
-        }
-        Collections.sort(sortedSessions);
-        return sortedSessions;
-    }
-
-    public long getGlobalRequestCounter() {
-        return globalRequestCounter;
     }
 
 }
