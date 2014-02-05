@@ -59,12 +59,10 @@ public class TestMemoryDirectory extends NXRuntimeTestCase {
 
     static final String SCHEMA_NAME = "myschema";
 
+    @Override
     @Before
     public void setUp() throws Exception {
         super.setUp();
-
-        deployBundle("org.nuxeo.ecm.core.schema");
-        deployContrib("org.nuxeo.ecm.directory.core.tests", "test-schema.xml");
 
         Set<String> schemaSet = new HashSet<String>(Arrays.asList("i", "pw",
                 "a", "int", "b"));

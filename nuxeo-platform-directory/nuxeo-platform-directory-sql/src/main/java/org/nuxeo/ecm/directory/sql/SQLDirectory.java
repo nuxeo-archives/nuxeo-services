@@ -92,7 +92,6 @@ public class SQLDirectory extends AbstractDirectory {
                         "Cannot state on sql directory session before commit "
                                 + SQLDirectory.this, e);
             }
-
         }
 
         @Override

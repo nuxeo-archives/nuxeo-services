@@ -1,0 +1,10 @@
+<comnponent name="org.nuxeo.ecm.directory.sql.test">
+
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <datasource name="jdbc/nxactivities"  xaDataSource="org.h2.jdbcx.JdbcDataSource"
+      maxActive="20" maxIdle="5">
+      <property name="URL">jdbc:h2:${ds.directory.home}/db</property>
+    </datasource>
+  </extension>
+  
+</comnponent>

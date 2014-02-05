@@ -1048,8 +1048,6 @@ public class SQLSession extends BaseSession implements EntrySource {
             }
         } catch (SQLException e) {
             throw new DirectoryException("close failed", e);
-        } finally {
-            directory.removeSession(this);
         }
     }
 
