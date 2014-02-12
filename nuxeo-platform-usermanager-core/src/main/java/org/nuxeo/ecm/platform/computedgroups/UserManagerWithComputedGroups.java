@@ -112,7 +112,8 @@ public class UserManagerWithComputedGroups extends UserManagerImpl {
     public NuxeoGroup getGroup(String groupName) throws ClientException {
         NuxeoGroup grp = super.getGroup(groupName);
         if (activateComputedGroup()
-                && (grp == null || getService().allowGroupOverride())) {
+                && (grp == null )) {
+            // Computed groups always override regular groups
             NuxeoGroup computed = getService().getComputedGroup(groupName);
             if (computed != null) {
                 grp = computed;

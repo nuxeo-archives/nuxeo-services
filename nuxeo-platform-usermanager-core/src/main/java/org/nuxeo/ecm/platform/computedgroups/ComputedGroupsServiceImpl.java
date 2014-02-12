@@ -140,7 +140,14 @@ public class ComputedGroupsServiceImpl extends DefaultComponent implements
         }
     }
 
+    /**
+     * The property is initialized to true and cannot be modified (no setter).
+     * Since it always return true, mark as deprecated.
+     *
+     * @deprecated since 5.9.2
+     */
     @Override
+    @Deprecated
     public boolean allowGroupOverride() {
         return allowOverride;
     }
