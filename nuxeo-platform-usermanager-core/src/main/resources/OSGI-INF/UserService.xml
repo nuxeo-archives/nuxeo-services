@@ -13,7 +13,7 @@
     <provide interface="org.nuxeo.runtime.api.login.Authenticator" />
   </service>
 
-  <extension-point name="userManager">
+  <extension target="org.nuxeo.ecm.platform.usermanager.UserService" point="userManager">
 
     <documentation>
       Configure the userManager.
@@ -111,6 +111,6 @@
 
     <object class="org.nuxeo.ecm.platform.usermanager.UserManagerDescriptor" />
 
-  </extension-point>
+  </extension>
 
 </component>
