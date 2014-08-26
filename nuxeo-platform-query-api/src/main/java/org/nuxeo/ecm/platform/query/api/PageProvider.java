@@ -401,4 +401,14 @@ public interface PageProvider<T> extends Serializable {
      */
     boolean hasChangedParameters(Object[] parameters);
 
+    /**
+     * @since 5.9.6
+     */
+    List<AggregateQuery> getAggregatesQuery();
+
+    /**
+     * @since 5.9.6
+     */
+    List<Aggregate> getAggregates();
+
 }

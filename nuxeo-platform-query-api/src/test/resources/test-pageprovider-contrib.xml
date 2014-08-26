@@ -102,6 +102,30 @@
       </whereClause>
     </coreQueryPageProvider>
 
+    <genericPageProvider name="TEST_AGGREGATES"
+      class="org.nuxeo.ecm.platform.query.nxql.CoreQueryAndFetchPageProvider">
+      <pattern>
+        SELECT * FROM Document
+      </pattern>
+      <sort column="dc:title" ascending="true" />
+      <pageSize>2</pageSize>
+      <aggregates>
+        <aggregate id="source_agg" type="terms" parameter="dc:source">
+          <field schema="advanced_search" name="source_agg"/>
+          <property name="size">5</property>
+          <property name="otherTermsProp">foo</property>
+        </aggregate>
+        <aggregate id="coverage_agg" type="histogram" parameter="dc:coverage">
+          <field schema="search" name="coverage_agg"/>
+          <jsonProperties>{"interval" : 50}</jsonProperties>
+        </aggregate>
+        <aggregate id="subject_agg" type="terms" parameter="dc:subjects">
+          <field schema="search" name="subjects_agg"/>
+        </aggregate>
+      </aggregates>
+    </genericPageProvider>
+
+
   </extension>
 
 </component>

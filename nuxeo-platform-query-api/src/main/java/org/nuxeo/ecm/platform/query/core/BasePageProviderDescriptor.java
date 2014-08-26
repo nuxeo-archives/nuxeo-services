@@ -13,10 +13,12 @@
  *
  * Contributors:
  *     Anahide Tchertchian
+ *     Benoit Delbosc
  */
 package org.nuxeo.ecm.platform.query.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.ecm.core.api.SortInfo;
+import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
 import org.nuxeo.ecm.platform.query.api.WhereClauseDefinition;
 
 /**
@@ -80,6 +83,10 @@ public class BasePageProviderDescriptor {
             this.pattern = pattern.replaceAll("\r?\n\\s*", " ");
         }
     }
+
+    @XNodeList(value = "aggregates/aggregate", type = ArrayList.class,
+            componentType = AggregateDescriptor.class)
+    protected List<AggregateDescriptor> aggregates;
 
     public boolean getQuotePatternParameters() {
         return quotePatternParameters;
@@ -145,6 +152,13 @@ public class BasePageProviderDescriptor {
 
     public Long getMaxPageSize() {
         return maxPageSize;
+    }
+
+    /**
+     * @since 5.9.6
+     */
+    public List<AggregateDefinition> getAggregates() {
+        return (List<AggregateDefinition>)(List<?>) aggregates;
     }
 
 }
