@@ -19,47 +19,33 @@
 
 package org.nuxeo.ecm.directory.ldap;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.nuxeo.ecm.core.redis.RedisFeature;
-import org.nuxeo.ecm.directory.DirectoryCache;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite.SuiteClasses;
+import org.nuxeo.ecm.directory.DirectoryCacheFeature;
+import org.nuxeo.runtime.test.runner.ContributableFeaturesRunner;
+import org.nuxeo.runtime.test.runner.Features;
 
 /**
  * Test class for LDAP directory that use cache
  */
-public class TestCachedLDAPSession extends TestLDAPSession {
+@RunWith(ContributableFeaturesRunner.class)
+@Features(DirectoryCacheFeature.class)
+@SuiteClasses(TestLDAPSession.class)
+public class TestCachedLDAPSession extends LDAPDirectoryTestCase{
 
-    protected final static String CACHE_CONFIG = "ldap-directory-cache-config.xml";
+   
+//    @Override
+//    public void setUp() throws Exception {
+//        super.setUp();
+//        
+//        List<String> directories = Arrays.asList("userDirectory",
+//                "groupDirectory");
+//        for (String directoryName : directories) {
+//            Directory dir = directoryService.getDirectory(directoryName);
+//            DirectoryCache dirCache = dir.getCache();
+//            dirCache.setEntryCacheName(ENTRY_CACHE_NAME);
+//            dirCache.setEntryCacheWithoutReferencesName(ENTRY_CACHE_WITHOUT_REFERENCES_NAME);
 
-    protected final static String REDIS_CACHE_CONFIG = "ldap-directory-redis-cache-config.xml";
-
-    protected final static String ENTRY_CACHE_NAME = "ldap-entry-cache";
-
-    protected final static String ENTRY_CACHE_WITHOUT_REFERENCES_NAME = "ldap-entry-cache-without-references";
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        deployBundle("org.nuxeo.ecm.core.cache");
-
-        if (!RedisFeature.getMode().equals(RedisFeature.Mode.disabled)) {
-            RedisFeature.setup(this);
-            deployTestContrib(TEST_BUNDLE, REDIS_CACHE_CONFIG);
-
-        } else {
-            deployTestContrib(TEST_BUNDLE, CACHE_CONFIG);
-        }
-        fireFrameworkStarted();
-        List<String> directories = Arrays.asList("userDirectory",
-                "groupDirectory");
-        for (String directoryName : directories) {
-            LDAPDirectory dir = getLDAPDirectory(directoryName);
-            DirectoryCache cache = dir.getCache();
-            cache.setEntryCacheName(ENTRY_CACHE_NAME);
-            cache.setEntryCacheWithoutReferencesName(ENTRY_CACHE_WITHOUT_REFERENCES_NAME);
-        }
-    }
+//    }
 
 }
