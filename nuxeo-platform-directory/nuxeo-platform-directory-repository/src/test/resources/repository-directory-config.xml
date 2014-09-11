@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.directory.repository.config.test">
+
+  <extension target="org.nuxeo.ecm.directory.repository.RepositoryDirectoryFactory"
+    point="directories">
+
+    <directory name="repositoryDirectory">
+      <schema>schema1</schema>
+      <docType>RepoDirDoc</docType>
+      <repositoryName>test</repositoryName>
+      <idField>username</idField>
+      <passwordField>password</passwordField>
+      <readOnly>false</readOnly>
+      <autoVersioning>false</autoVersioning>
+      <fieldMapping name="username">uid</fieldMapping>
+      <fieldMapping name="password">foo</fieldMapping>
+      <fieldMapping name="company">bar</fieldMapping>
+      <createPath>/</createPath>
+      <references>
+      </references>
+    </directory>
+
+
+
+  </extension>
+
+</component>

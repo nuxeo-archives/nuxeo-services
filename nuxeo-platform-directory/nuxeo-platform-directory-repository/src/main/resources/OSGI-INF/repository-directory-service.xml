@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.directory.repository.RepositoryDirectoryFactory">
+
+  <implementation
+    class="org.nuxeo.ecm.directory.repository.RepositoryDirectoryFactory" />
+
+  <require>org.nuxeo.ecm.directory.DirectoryServiceImpl</require>
+
+  <documentation>Repository directory implementation.</documentation>
+
+  <extension target="org.nuxeo.ecm.directory.DirectoryServiceImpl"
+    point="factoryDescriptor">
+    <factoryDescriptor
+      component="org.nuxeo.ecm.directory.repository.RepositoryDirectoryFactory" />
+  </extension>
+
+  <extension-point name="directories">
+    <object class="org.nuxeo.ecm.directory.repository.RepositoryDirectoryDescriptor" />
+    <object class="org.nuxeo.ecm.directory.repository.ACLDescriptor" />
+
+    <documentation>
+      This extension point can be used to register new
+      repository directories.
+      <code>
+        ...
+        <directory name="repositoryDirectory">
+          <schema>user</schema>
+          <idField>username</idField>
+          <passwordField>password</passwordField>
+          <readOnly>false</readOnly>
+          <references>
+          </references>
+
+        </directory>
+
+      </code>
+     
+    </documentation>
+  </extension-point>
+
+</component>

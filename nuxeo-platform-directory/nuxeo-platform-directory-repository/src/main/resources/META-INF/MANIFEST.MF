@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.nuxeo.ecm.directory.repository
+Nuxeo-Component: OSGI-INF/repository-directory-service.xml
+Require-Bundle: org.nuxeo.ecm.directory

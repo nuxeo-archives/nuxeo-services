@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Nuxeo ECM Directory Repository Tests
+Bundle-SymbolicName: org.nuxeo.ecm.directory.repository.tests;singleton:=true
+Bundle-Vendor: Nuxeo
+
