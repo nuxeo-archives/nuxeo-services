@@ -20,7 +20,6 @@ package org.nuxeo.ecm.directory.repository.test;
 
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.TransactionalFeature;
-import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.api.DirectoryService;
@@ -36,20 +35,25 @@ import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
 @Features({ TransactionalFeature.class, CoreFeature.class })
-@RepositoryConfig(init = RepositoryDirectoryInit.class, cleanup = Granularity.METHOD)
+@RepositoryConfig(init = RepositoryDirectoryInit.class)
 @Deploy({ "org.nuxeo.ecm.directory.api", "org.nuxeo.ecm.directory",
-        "org.nuxeo.ecm.core.schema", "org.nuxeo.ecm.directory.types.contrib",
+        "org.nuxeo.ecm.directory.sql", "org.nuxeo.ecm.core.schema",
+        "org.nuxeo.ecm.directory.types.contrib",
+        "org.nuxeo.ecm.platform.usermanager",
+        "org.nuxeo.ecm.platform.usermanager.api",
         "org.nuxeo.ecm.directory.repository" })
 @LocalDeploy({
         "org.nuxeo.ecm.directory.types.contrib:schemas-config.xml",
+        "org.nuxeo.ecm.directory.repository.config.tests:test-sql-directories-config.xml",
+        "org.nuxeo.ecm.directory.repository.config.tests:test-contrib-usermanager-config.xml",
         "org.nuxeo.ecm.directory.repository.config.tests:repository-directory-config.xml" })
 public class RepositoryDirectoryFeature extends SimpleFeature {
+    public static final String REPO_DIRECTORY_NAME = "repositoryDirectory";
 
-    public static final String DIRECTORY_NAME = "repositoryDirectory";
 
     @Override
     public void configure(final FeaturesRunner runner, Binder binder) {
-        bindDirectory(binder, DIRECTORY_NAME);
+        bindDirectory(binder, REPO_DIRECTORY_NAME);
     }
 
     protected void bindDirectory(Binder binder, final String name) {
@@ -64,13 +68,11 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
 
                 });
     }
-    
+
     @Override
     public void stop(FeaturesRunner runner) throws Exception {
         Framework.getService(DirectoryService.class).getDirectory(
-                DIRECTORY_NAME).getSession().close();
+                REPO_DIRECTORY_NAME).getSession().close();
     }
-
-    
 
 }

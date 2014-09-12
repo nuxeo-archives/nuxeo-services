@@ -97,7 +97,7 @@ public class RepositoryDirectorySession extends BaseSession {
             return null;
         }
 
-        
+        //TODO : deal with encrypted password
         Map<String, Object> properties = new HashMap<String, Object>();
         for (String fieldId : fieldMap.keySet()) {
             String backendFieldId = directory.getFieldMapper().getBackendField(

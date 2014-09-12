@@ -40,6 +40,7 @@ import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.repository.RepositoryDirectorySession;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
@@ -52,8 +53,11 @@ import com.google.inject.name.Named;
 public class TestRepositoryDirectory {
 
     @Inject
-    @Named(value = RepositoryDirectoryFeature.DIRECTORY_NAME)
+    @Named(value = RepositoryDirectoryFeature.REPO_DIRECTORY_NAME)
     Directory repoDir;
+    
+    @Inject
+    UserManager um;
 
     RepositoryDirectorySession dirSession;
 
