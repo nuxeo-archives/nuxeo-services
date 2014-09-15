@@ -18,19 +18,22 @@
 package org.nuxeo.ecm.directory.repository;
 
 import java.io.Serializable;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.directory.BaseSession;
+import org.nuxeo.ecm.directory.DirectoryCache;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 
@@ -54,6 +57,10 @@ public class RepositoryDirectorySession extends BaseSession {
 
     final protected CoreSession coreSession;
 
+    final protected String createPath;
+
+    private final static Log log = LogFactory.getLog(RepositoryDirectorySession.class);
+
     public RepositoryDirectorySession(RepositoryDirectory repositoryDirectory) {
         directoryService = RepositoryDirectoryFactory.getDirectoryService();
         this.directory = repositoryDirectory;
@@ -63,6 +70,8 @@ public class RepositoryDirectorySession extends BaseSession {
                 directory.getIdField());
         schemaPasswordField = directory.getFieldMapper().getBackendField(
                 directory.getPasswordField());
+
+        createPath = directory.getDescriptor().createPath;
     }
 
     @Override
@@ -73,22 +82,34 @@ public class RepositoryDirectorySession extends BaseSession {
     @Override
     public DocumentModel getEntry(String id, boolean fetchReferences)
             throws DirectoryException {
-        return coreSession.getDocument(new IdRef(id));
+        DocumentModelList listDoc = coreSession.query("SELECT * FROM "
+                + directory.getDescriptor().docType + " WHERE "
+                + directory.getField(schemaIdField).getName().getPrefixedName()
+                + " = '" + id + "'" + " AND ecm:path STARTSWITH '" + createPath
+                + "'");
+        // TODO : deal with references
+        // TODO: deal with createPath
+        if (!listDoc.isEmpty()) {
+            // Should have only one
+            if (listDoc.size() > 1) {
+                log.warn(String.format("Found more than one result in getEntry, the first result only will be returned"));
+            }
+            return listDoc.get(0);
+        }
+        return null;
     }
 
     @Override
     public DocumentModelList getEntries() throws ClientException,
             DirectoryException {
-        // TODO Auto-generated method stub
-        // return null;
         throw new UnsupportedOperationException();
     }
 
-    private String getPrefixedFieldName(String fieldName)
-    {
+    private String getPrefixedFieldName(String fieldName) {
         Field schemaField = directory.getField(fieldName);
         return schemaField.getName().getPrefixedName();
     }
+
     @Override
     public DocumentModel createEntry(Map<String, Object> fieldMap)
             throws ClientException, DirectoryException {
@@ -97,7 +118,7 @@ public class RepositoryDirectorySession extends BaseSession {
             return null;
         }
 
-        //TODO : deal with encrypted password
+        // TODO : deal with encrypted password
         Map<String, Object> properties = new HashMap<String, Object>();
         for (String fieldId : fieldMap.keySet()) {
             String backendFieldId = directory.getFieldMapper().getBackendField(
@@ -106,8 +127,8 @@ public class RepositoryDirectorySession extends BaseSession {
             Object value = fieldMap.get(fieldId);
             properties.put(getPrefixedFieldName(backendFieldId), value);
         }
-        
-        final Object rawid = properties.get(getPrefixedFieldName(schemaIdField));
+
+        final String rawid = (String) properties.get(getPrefixedFieldName(schemaIdField));
         if (rawid == null) {
             throw new DirectoryException(String.format(
                     "Entry is missing id field '%s'", schemaIdField));
@@ -117,13 +138,12 @@ public class RepositoryDirectorySession extends BaseSession {
         String path = directory.getDescriptor().createPath;
         String schema = directory.getSchema();
 
-        // TODO : deal with parent path
-        DocumentModel docModel = coreSession.createDocumentModel(docType);
+        DocumentModel docModel = coreSession.createDocumentModel(path, rawid,
+                docType);
 
         docModel.setProperties(schema, properties);
         return coreSession.createDocument(docModel);
 
-        
     }
 
     @Override
@@ -194,7 +214,7 @@ public class RepositoryDirectorySession extends BaseSession {
 
     @Override
     public void close() throws DirectoryException {
-        //coreSession.close();
+        // coreSession.close();
     }
 
     @Override

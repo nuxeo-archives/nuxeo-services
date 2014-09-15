@@ -1,4 +1,4 @@
-username, password, firstName, lastName, company, email, intField, longField, doubleField, dateField, booleanField
-"Administrator","Administrator",__NULL__,"","blabla","Administrator@example.com",10,1,1.1,1982-03-25 16:30:47.123,__NULL__
-"user_1","user_1","u1","u1","__NULL__","e@m",3,3,3.3,2007-09-07 14:36:28.000,true
-"user_2","user_2","u2","u2","__NULL__","e3@m",4,4,4.4,2008-01-01 14:36:28.000,true
+username, password, firstName, lastName, company, email
+"Administrator","Administrator",__NULL__,"","blabla","Administrator@example.com"
+"user_1","user_1","u1","u1","__NULL__","e@m"
+"user_2","user_2","u2","u2","__NULL__","e3@m"

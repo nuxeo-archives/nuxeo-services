@@ -44,6 +44,7 @@ import com.google.inject.name.Names;
         "org.nuxeo.ecm.directory.repository" })
 @LocalDeploy({
         "org.nuxeo.ecm.directory.types.contrib:schemas-config.xml",
+        "org.nuxeo.ecm.directory.repository.config.tests:login-config.xml",
         "org.nuxeo.ecm.directory.repository.config.tests:test-sql-directories-config.xml",
         "org.nuxeo.ecm.directory.repository.config.tests:test-contrib-usermanager-config.xml",
         "org.nuxeo.ecm.directory.repository.config.tests:repository-directory-config.xml" })
@@ -74,5 +75,7 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
         Framework.getService(DirectoryService.class).getDirectory(
                 REPO_DIRECTORY_NAME).getSession().close();
     }
+    
+    
 
 }

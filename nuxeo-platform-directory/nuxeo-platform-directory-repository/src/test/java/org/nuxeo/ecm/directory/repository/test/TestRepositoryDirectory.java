@@ -25,9 +25,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.Serializable;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.security.auth.login.LoginContext;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,11 +39,14 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelComparator;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.local.ClientLoginModule;
 import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.repository.RepositoryDirectorySession;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.api.login.LoginService;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
@@ -55,11 +61,12 @@ public class TestRepositoryDirectory {
     @Inject
     @Named(value = RepositoryDirectoryFeature.REPO_DIRECTORY_NAME)
     Directory repoDir;
-    
+
+    @Inject
+    LoginService loginService;
+
     @Inject
     UserManager um;
-
-    RepositoryDirectorySession dirSession;
 
     @Inject
     protected RuntimeHarness harness;
@@ -74,36 +81,34 @@ public class TestRepositoryDirectory {
 
     protected final static String BAR_FIELD = PREFIX_SCHEMA + ":" + "bar";
 
-    @Before
-    public void setUp() throws Exception {
+    protected final static String FOO_FIELD = PREFIX_SCHEMA + ":" + "foo";
 
-        // the resilient directory
-        dirSession = (RepositoryDirectorySession) repoDir.getSession();
-
-        Map<String, Object> e = new HashMap<String, Object>();
-        e.put(USERNAME_FIELD, "1");
-        e.put(PASSWORD_FIELD, "foo1");
-        e.put(COMPANY_FIELD, "bar1");
-        dirSession.createEntry(e);
+    protected Principal loginAs(String username, String password)
+            throws Exception {
+        Principal user = um.authenticate(username, password);
+        LoginContext logContext = Framework.login(username, password);
+        ClientLoginModule.getThreadLocalLogin().push(user,
+                password.toCharArray(), logContext.getSubject());
+        return user;
     }
 
     @After
     public void tearDown() throws Exception {
-        dirSession.close();
+        // dirSession.close();
     }
 
     @Test
     public void testCreateEntry() throws Exception {
-
         Map<String, Object> e;
 
         e = new HashMap<String, Object>();
         e.put(USERNAME_FIELD, "2");
         e.put(PASSWORD_FIELD, "foo3");
         e.put(COMPANY_FIELD, "bar3");
-        DocumentModel doc = dirSession.createEntry(e);
+        DocumentModel doc = repoDir.getSession().createEntry(e);
 
         assertEquals("bar3", doc.getPropertyValue(BAR_FIELD));
+        
     }
 
     @Test
@@ -115,40 +120,45 @@ public class TestRepositoryDirectory {
         e.put("foo", "foo3");
         e.put("bar", "bar3");
 
-        DocumentModel docModel = dirSession.getEntry("1");
+        DocumentModel docModel = repoDir.getSession().getEntry("1");
         docModel.setProperties("schema1", e);
 
-        dirSession.updateEntry(docModel);
+        repoDir.getSession().updateEntry(docModel);
 
     }
 
     @Test
     public void testGetEntry() throws Exception {
+        loginAs("user_2", "user_2");
+
         DocumentModel entry;
-        entry = dirSession.getEntry("1");
-        assertEquals("1", entry.getProperty("schema1", "uid"));
-        assertEquals("foo1", entry.getProperty("schema1", "foo"));
-        entry = dirSession.getEntry("no-such-entry");
+        entry = repoDir.getSession().getEntry(
+                RepositoryDirectoryInit.DOC_ID_USER1);
+        assertEquals("foo1", entry.getPropertyValue(FOO_FIELD));
+        entry = repoDir.getSession().getEntry("no-such-entry");
         assertNull(entry);
+
+        // TODO : test with different user's rights
+
     }
 
     @Test
     public void testAuthenticate() throws Exception {
-        assertTrue(dirSession.authenticate("1", "foo1"));
-        assertFalse(dirSession.authenticate("1", "haha"));
+        assertTrue(repoDir.getSession().authenticate("1", "foo1"));
+        assertFalse(repoDir.getSession().authenticate("1", "haha"));
     }
 
     @Test
     public void testDeleteEntry() throws Exception {
-        dirSession.deleteEntry("no-such-entry");
-        dirSession.deleteEntry("1");
-        assertNull(dirSession.getEntry("1"));
+        repoDir.getSession().deleteEntry("no-such-entry");
+        repoDir.getSession().deleteEntry("1");
+        assertNull(repoDir.getSession().getEntry("1"));
     }
 
     @Test
     public void testHasEntry() throws Exception {
-        assertTrue(dirSession.hasEntry("1"));
-        assertFalse(dirSession.hasEntry("foo"));
+        assertTrue(repoDir.getSession().hasEntry("1"));
+        assertFalse(repoDir.getSession().hasEntry("foo"));
     }
 
     @Test
@@ -163,14 +173,14 @@ public class TestRepositoryDirectory {
                 null);
         entry.setProperty("schema1", "uid", "yo");
 
-        assertNull(dirSession.getEntry("yo"));
-        dirSession.createEntry(entry);
-        assertNotNull(dirSession.getEntry("yo"));
+        assertNull(repoDir.getSession().getEntry("yo"));
+        repoDir.getSession().createEntry(entry);
+        assertNotNull(repoDir.getSession().getEntry("yo"));
 
         // create one with existing same id, must fail
         entry.setProperty("schema1", "uid", "1");
         try {
-            entry = dirSession.createEntry(entry);
+            entry = repoDir.getSession().createEntry(entry);
             fail("Should raise an error, entry already exists");
         } catch (DirectoryException e) {
         }
@@ -179,16 +189,18 @@ public class TestRepositoryDirectory {
     @Test
     public void testReadOnlyOnGetEntry() throws Exception {
         // by default no backing dir is readonly
-        assertFalse(BaseSession.isReadOnlyEntry(dirSession.getEntry("1")));
+        assertFalse(BaseSession.isReadOnlyEntry(repoDir.getSession().getEntry(
+                "1")));
 
         // Set the master memory directory to read-only
         // dirSession.setReadOnly(true);
 
         // The resilient dir should be read-only now
-        assertTrue(dirSession.isReadOnly());
+        assertTrue(repoDir.getSession().isReadOnly());
 
         // all should be readonly
-        assertTrue(BaseSession.isReadOnlyEntry(dirSession.getEntry("1")));
+        assertTrue(BaseSession.isReadOnlyEntry(repoDir.getSession().getEntry(
+                "1")));
 
     }
 
@@ -199,7 +211,7 @@ public class TestRepositoryDirectory {
         DocumentModelComparator comp = new DocumentModelComparator(orderBy);
 
         Map<String, Serializable> filter = new HashMap<String, Serializable>();
-        DocumentModelList results = dirSession.query(filter);
+        DocumentModelList results = repoDir.getSession().query(filter);
         Collections.sort(results, comp);
 
         // by default no backing dir is readonly
@@ -207,7 +219,7 @@ public class TestRepositoryDirectory {
         assertFalse(BaseSession.isReadOnlyEntry(results.get(1)));
 
         // dirSession.setReadOnly(true);
-        results = dirSession.query(filter);
+        results = repoDir.getSession().query(filter);
         Collections.sort(results, comp);
         assertTrue(BaseSession.isReadOnlyEntry(results.get(0)));
         assertTrue(BaseSession.isReadOnlyEntry(results.get(1)));

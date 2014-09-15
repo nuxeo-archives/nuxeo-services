@@ -18,6 +18,7 @@
 package org.nuxeo.ecm.directory.repository.test;
 
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE;
+import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ;
 
 import javax.inject.Inject;
 
@@ -27,6 +28,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
+import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 
@@ -35,6 +37,18 @@ import org.nuxeo.ecm.platform.usermanager.UserManager;
  */
 public class RepositoryDirectoryInit implements RepositoryInit {
 
+    public static String WORKSPACES_PATH = "/default-domain/workspaces";
+    
+    public static String DOC_ID_USER1 = "user1";
+    public static String DOC_ID_USER2 = "user2";
+    
+    public static String USERS_RESTRICTED_FOLDER = "users-restricted";
+    public static String USERS_UNRESTRICTED_FOLDER = "users-unrestricted";
+    
+    public static String USERS_RESTRICTED_PATH = "/default-domain/workspaces/test/"+USERS_RESTRICTED_FOLDER; 
+    
+    public static String USERS_UNRESTRICTED_PATH = "/default-domain/workspaces/test/"+USERS_UNRESTRICTED_FOLDER; 
+    
     @Inject
     UserManager um;
 
@@ -42,30 +56,47 @@ public class RepositoryDirectoryInit implements RepositoryInit {
     public void populate(CoreSession session) throws ClientException {
         // TODO: bootstrap user, groups, folder, setup acl etc.
 
-        createDomain(session, "default-domain", "Default domain");
-
-        DocumentModel docDomain = createDomain(session, "restricted-domain",
-                "Resricted domain");
-        removeAllPermission(docDomain);
-        applyPermission(docDomain, WRITE, true, "user_1");
-
-        DocumentModel doc = createDocument(session,
-                docDomain.getPathAsString(), "users", "WorkspaceRoot");
-        createDocument(session, doc.getPathAsString(), "User1", "RepoDirDoc");
-
-        docDomain = createDomain(session, "unrestricted-domain",
-                "Unrestricted domain");
+        DocumentModel docDomain = createDomain(session, "default-domain", "Default domain");
         
-        removeAllPermission(docDomain);
+        DocumentModel doc = session.createDocumentModel(WORKSPACES_PATH,
+                "test", "Workspace");
+        doc.setProperty("dublincore", "title", "test");
+        doc = session.createDocument(doc);
+        
+        doc = createDocument(session,
+                WORKSPACES_PATH+"/test", USERS_RESTRICTED_FOLDER, "Folder");
+        doc = removeAllPermission(doc);
+        //user_2 has no permission on it
+        doc = applyPermission(doc, WRITE, true, "user_1");
+        doc = applyPermission(doc, READ, false, "user_2");
+        doc = applyPermission(doc, WRITE, false, "user_2");
+        doc = applyPermission(doc, SecurityConstants.EVERYTHING, false, "user_2");
+
+        //Create a User1 doc for unit test
+        DocumentModel user1 = createDocument(session, doc.getPathAsString(), "User1", "RepoDirDoc");
+        user1.setProperty("schema1", "uid", DOC_ID_USER1);
+        user1.setProperty("schema1", "foo", "foo1");
+        user1.setProperty("schema1", "bar", "bar1");
+        session.saveDocument(user1);
+        
+        doc = createDocument(session,
+                WORKSPACES_PATH+"/test", USERS_UNRESTRICTED_FOLDER, "Folder");
+        
+        removeAllPermission(doc);
+        //Both User1 & User2 have write access
         applyPermission(docDomain, WRITE, true, "user_1");
         applyPermission(docDomain, WRITE, true, "user_2");
         
-        doc = createDocument(session, docDomain.getPathAsString(), "users",
-                "WorkspaceRoot");
-        createDocument(session, doc.getPathAsString(), "User2", "RepoDirDoc");
+        //Create a User2 doc for unit test
+        DocumentModel user2 = createDocument(session, doc.getPathAsString(), "User2", "RepoDirDoc");
+        user2.setProperty("schema1", "uid", DOC_ID_USER2);
+        user2.setProperty("schema1", "foo", "foo2");
+        user2.setProperty("schema1", "bar", "bar2");
+        session.saveDocument(user2);
 
     }
 
+   
     public DocumentModel createDocument(CoreSession session, String parentPath,
             String docName, String docType) {
         DocumentModel doc = session.createDocumentModel(parentPath, docName,
@@ -99,15 +130,10 @@ public class RepositoryDirectoryInit implements RepositoryInit {
                 "Root of workspaces templates");
         doc = session.createDocument(doc);
 
-        doc = session.createDocumentModel("/" + domainName + "/workspaces",
-                "test", "Workspace");
-        doc.setProperty("dublincore", "title", "workspace");
-        doc = session.createDocument(doc);
-
         return docDomain;
     }
 
-    protected void removeAllPermission(DocumentModel docModel) {
+    protected DocumentModel removeAllPermission(DocumentModel docModel) {
         ACP acp = docModel.getACP();
 
         ACL[] ACLs = acp.getACLs();
@@ -116,9 +142,11 @@ public class RepositoryDirectoryInit implements RepositoryInit {
         }
         // which is dynamically computed
         docModel.setACP(acp, true);
+        
+        return docModel.getCoreSession().saveDocument(docModel);
     }
 
-    protected void applyPermission(DocumentModel docModel, String privilege,
+    protected DocumentModel applyPermission(DocumentModel docModel, String privilege,
             boolean granted, String userOrGroupName) {
         // if (!isAdministrator()) {
         // throw new DocumentSecurityException(
@@ -137,7 +165,7 @@ public class RepositoryDirectoryInit implements RepositoryInit {
         localACL.add(new ACE(userOrGroupName, privilege, granted));
         docModel.setACP(acp, true);
 
-        docModel.getCoreSession().save();
+        return docModel.getCoreSession().saveDocument(docModel);
 
         // doc = session.getDocument(new PathRef("/testACPInheritance/folder"));
         // acp = doc.getACP();
