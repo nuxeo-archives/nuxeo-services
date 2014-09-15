@@ -55,6 +55,11 @@ public class RepositoryDirectoryInit implements RepositoryInit {
 
         docDomain = createDomain(session, "unrestricted-domain",
                 "Unrestricted domain");
+        
+        removeAllPermission(docDomain);
+        applyPermission(docDomain, WRITE, true, "user_1");
+        applyPermission(docDomain, WRITE, true, "user_2");
+        
         doc = createDocument(session, docDomain.getPathAsString(), "users",
                 "WorkspaceRoot");
         createDocument(session, doc.getPathAsString(), "User2", "RepoDirDoc");
