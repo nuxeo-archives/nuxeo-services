@@ -40,7 +40,9 @@ public class RepositoryDirectoryInit implements RepositoryInit {
     public static String WORKSPACES_PATH = "/default-domain/workspaces";
     
     public static String DOC_ID_USER1 = "user1";
+    public static String DOC_PWD_USER1 = "foo1";
     public static String DOC_ID_USER2 = "user2";
+    public static String DOC_PWD_USER2 = "foo2";
     
     public static String USERS_RESTRICTED_FOLDER = "users-restricted";
     public static String USERS_UNRESTRICTED_FOLDER = "users-unrestricted";
@@ -75,7 +77,7 @@ public class RepositoryDirectoryInit implements RepositoryInit {
         //Create a User1 doc for unit test
         DocumentModel user1 = createDocument(session, doc.getPathAsString(), "User1", "RepoDirDoc");
         user1.setProperty("schema1", "uid", DOC_ID_USER1);
-        user1.setProperty("schema1", "foo", "foo1");
+        user1.setProperty("schema1", "foo", DOC_PWD_USER1);
         user1.setProperty("schema1", "bar", "bar1");
         session.saveDocument(user1);
         
@@ -90,7 +92,7 @@ public class RepositoryDirectoryInit implements RepositoryInit {
         //Create a User2 doc for unit test
         DocumentModel user2 = createDocument(session, doc.getPathAsString(), "User2", "RepoDirDoc");
         user2.setProperty("schema1", "uid", DOC_ID_USER2);
-        user2.setProperty("schema1", "foo", "foo2");
+        user2.setProperty("schema1", "foo", DOC_PWD_USER2);
         user2.setProperty("schema1", "bar", "bar2");
         session.saveDocument(user2);
 

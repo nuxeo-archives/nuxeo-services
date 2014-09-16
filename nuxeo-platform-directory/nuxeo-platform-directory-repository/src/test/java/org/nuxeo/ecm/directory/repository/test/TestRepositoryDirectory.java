@@ -33,7 +33,7 @@ import java.util.Map;
 import javax.security.auth.login.LoginContext;
 
 import org.junit.After;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -43,7 +43,6 @@ import org.nuxeo.ecm.core.api.local.ClientLoginModule;
 import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.DirectoryException;
-import org.nuxeo.ecm.directory.repository.RepositoryDirectorySession;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.LoginService;
@@ -71,6 +70,10 @@ public class TestRepositoryDirectory {
     @Inject
     protected RuntimeHarness harness;
 
+    protected final static String SCHEMA_NAME = "schema1";
+    
+    protected final static String USER_SCHEMA_NAME = "user";
+    
     protected final static String PREFIX_SCHEMA = "sch1";
 
     protected final static String USERNAME_FIELD = "username";
@@ -79,6 +82,8 @@ public class TestRepositoryDirectory {
 
     protected final static String COMPANY_FIELD = "company";
 
+    protected final static String UID_FIELD = PREFIX_SCHEMA + ":" + "uid";
+    
     protected final static String BAR_FIELD = PREFIX_SCHEMA + ":" + "bar";
 
     protected final static String FOO_FIELD = PREFIX_SCHEMA + ":" + "foo";
@@ -113,23 +118,28 @@ public class TestRepositoryDirectory {
 
     @Test
     public void testUpdateEntry() throws Exception {
+        //TODO test with different user's right
+        
         Map<String, Object> e;
-
         e = new HashMap<String, Object>();
-        e.put("uid", "1");
-        e.put("foo", "foo3");
-        e.put("bar", "bar3");
+        e.put(USERNAME_FIELD, RepositoryDirectoryInit.DOC_ID_USER1);
+        e.put(PASSWORD_FIELD, "foo3");
+        e.put(COMPANY_FIELD, "bar3");
 
-        DocumentModel docModel = repoDir.getSession().getEntry("1");
-        docModel.setProperties("schema1", e);
+        DocumentModel docModel = repoDir.getSession().getEntry(RepositoryDirectoryInit.DOC_ID_USER1);
+        docModel.setProperties(USER_SCHEMA_NAME, e);
 
         repoDir.getSession().updateEntry(docModel);
-
+        
+        docModel = repoDir.getSession().getEntry(RepositoryDirectoryInit.DOC_ID_USER1);
+        Assert.assertEquals("foo3", docModel.getPropertyValue(FOO_FIELD));
     }
+    
+    
 
     @Test
     public void testGetEntry() throws Exception {
-        loginAs("user_2", "user_2");
+//        loginAs("user_2", "user_2");
 
         DocumentModel entry;
         entry = repoDir.getSession().getEntry(
@@ -144,8 +154,9 @@ public class TestRepositoryDirectory {
 
     @Test
     public void testAuthenticate() throws Exception {
-        assertTrue(repoDir.getSession().authenticate("1", "foo1"));
-        assertFalse(repoDir.getSession().authenticate("1", "haha"));
+        Assert.assertTrue(repoDir.getSession().authenticate(RepositoryDirectoryInit.DOC_ID_USER1, RepositoryDirectoryInit.DOC_PWD_USER1));
+        Assert.assertFalse(repoDir.getSession().authenticate(RepositoryDirectoryInit.DOC_ID_USER1, "bad-pwd"));
+        Assert.assertFalse(repoDir.getSession().authenticate("bad-id", "haha"));
     }
 
     @Test
@@ -157,8 +168,8 @@ public class TestRepositoryDirectory {
 
     @Test
     public void testHasEntry() throws Exception {
-        assertTrue(repoDir.getSession().hasEntry("1"));
-        assertFalse(repoDir.getSession().hasEntry("foo"));
+        assertTrue(repoDir.getSession().hasEntry(RepositoryDirectoryInit.DOC_ID_USER1));
+        assertFalse(repoDir.getSession().hasEntry("bad-id"));
     }
 
     @Test
@@ -166,19 +177,25 @@ public class TestRepositoryDirectory {
 
     }
 
+    //TO be tested :
+//    create an entry that already exist but the user has not permission to see it
+//    See where it is stored (if ok)
+//    try to getEntry id
+    
     @Test
     public void testCreateFromModel() throws Exception {
-        String schema = "schema1";
-        DocumentModel entry = BaseSession.createEntryModel(null, schema, null,
+        DocumentModel entry = BaseSession.createEntryModel(null, SCHEMA_NAME, null,
                 null);
-        entry.setProperty("schema1", "uid", "yo");
+        String id = "newId";
+        entry.setPropertyValue(UID_FIELD, id);
 
-        assertNull(repoDir.getSession().getEntry("yo"));
-        repoDir.getSession().createEntry(entry);
-        assertNotNull(repoDir.getSession().getEntry("yo"));
+        assertNull(repoDir.getSession().getEntry(id));
+        DocumentModel newDoc = repoDir.getSession().createEntry(entry);
+        repoDir.getSession().updateEntry(newDoc);
+        assertNotNull(repoDir.getSession().getEntry(id));
 
         // create one with existing same id, must fail
-        entry.setProperty("schema1", "uid", "1");
+        entry.setProperty(USER_SCHEMA_NAME, USERNAME_FIELD, RepositoryDirectoryInit.DOC_ID_USER1);
         try {
             entry = repoDir.getSession().createEntry(entry);
             fail("Should raise an error, entry already exists");
