@@ -39,6 +39,7 @@ public class RepositoryDirectoryInit implements RepositoryInit {
 
     public static String WORKSPACES_PATH = "/default-domain/workspaces";
     
+    
     public static String DOC_ID_USER1 = "user1";
     public static String DOC_PWD_USER1 = "foo1";
     public static String DOC_ID_USER2 = "user2";
@@ -69,10 +70,10 @@ public class RepositoryDirectoryInit implements RepositoryInit {
                 WORKSPACES_PATH+"/test", USERS_RESTRICTED_FOLDER, "Folder");
         doc = removeAllPermission(doc);
         //user_2 has no permission on it
-        doc = applyPermission(doc, WRITE, true, "user_1");
-        doc = applyPermission(doc, READ, false, "user_2");
-        doc = applyPermission(doc, WRITE, false, "user_2");
-        doc = applyPermission(doc, SecurityConstants.EVERYTHING, false, "user_2");
+        doc = applyPermission(doc, WRITE, true, RepositoryDirectoryFeature.USER1_NAME);
+        doc = applyPermission(doc, READ, false, RepositoryDirectoryFeature.USER2_NAME);
+        doc = applyPermission(doc, WRITE, false, RepositoryDirectoryFeature.USER2_NAME);
+        doc = applyPermission(doc, SecurityConstants.EVERYTHING, false, RepositoryDirectoryFeature.USER2_NAME);
 
         //Create a User1 doc for unit test
         DocumentModel user1 = createDocument(session, doc.getPathAsString(), "User1", "RepoDirDoc");
@@ -86,8 +87,8 @@ public class RepositoryDirectoryInit implements RepositoryInit {
         
         removeAllPermission(doc);
         //Both User1 & User2 have write access
-        applyPermission(docDomain, WRITE, true, "user_1");
-        applyPermission(docDomain, WRITE, true, "user_2");
+        applyPermission(docDomain, WRITE, true, RepositoryDirectoryFeature.USER1_NAME);
+        applyPermission(docDomain, WRITE, true, RepositoryDirectoryFeature.USER2_NAME);
         
         //Create a User2 doc for unit test
         DocumentModel user2 = createDocument(session, doc.getPathAsString(), "User2", "RepoDirDoc");

@@ -18,11 +18,17 @@
 
 package org.nuxeo.ecm.directory.repository.test;
 
+import java.security.Principal;
+
+import javax.security.auth.login.LoginContext;
+
+import org.nuxeo.ecm.core.api.local.ClientLoginModule;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.TransactionalFeature;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.api.DirectoryService;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -51,6 +57,13 @@ import com.google.inject.name.Names;
 public class RepositoryDirectoryFeature extends SimpleFeature {
     public static final String REPO_DIRECTORY_NAME = "repositoryDirectory";
 
+    public static String USER1_NAME = "user_1";
+
+    public static String USER1_PWD = "user_1";
+
+    public static String USER2_NAME = "user_2";
+
+    public static String USER2_PWD = "user_2";
 
     @Override
     public void configure(final FeaturesRunner runner, Binder binder) {
@@ -70,14 +83,20 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
                 });
     }
 
+    protected static Principal loginAs(String username, String password)
+            throws Exception {
+        Principal user = Framework.getService(UserManager.class).authenticate(
+                username, password);
+        LoginContext logContext = Framework.login(username, password);
+        ClientLoginModule.getThreadLocalLogin().push(user,
+                password.toCharArray(), logContext.getSubject());
+        return user;
+    }
+
     @Override
     public void stop(FeaturesRunner runner) throws Exception {
         Framework.getService(DirectoryService.class).getDirectory(
                 REPO_DIRECTORY_NAME).getSession().close();
     }
-    
-   
-    
-    
 
 }
