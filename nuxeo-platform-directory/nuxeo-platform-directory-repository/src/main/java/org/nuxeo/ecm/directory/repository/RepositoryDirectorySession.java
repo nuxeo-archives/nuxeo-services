@@ -183,7 +183,6 @@ public class RepositoryDirectorySession extends BaseSession {
 
             if (!isReadOnlyEntry(docModel)) {
 
-                // Check isDirty
                 String id = (String) docModel.getProperty(schemaName,
                         getIdField());
                 if (id == null) {
@@ -307,7 +306,7 @@ public class RepositoryDirectorySession extends BaseSession {
     public DocumentModelList query(Map<String, Serializable> filter,
             Set<String> fulltext, Map<String, String> orderBy,
             boolean fetchReferences) throws ClientException {
-        return query(filter, fulltext, orderBy, fetchReferences, -1, -1);
+        return query(filter, fulltext, orderBy, fetchReferences, 0, 0);
     }
 
     protected String getMappedPrefixedFieldName(String fieldName) {
@@ -356,9 +355,18 @@ public class RepositoryDirectorySession extends BaseSession {
         }
 
         // Filter facetFilter = new FacetFilter(FacetNames.VERSIONABLE, true);
-
-        return coreSession.query(sbQuery.toString(), null, new Long(limit),
+        
+        DocumentModelList resultsDoc = coreSession.query(sbQuery.toString(), null, new Long(limit),
                 new Long(offset), false);
+        
+        if(isReadOnly())
+        {
+            for (DocumentModel documentModel : resultsDoc) {
+                BaseSession.setReadOnlyEntry(documentModel);
+            }
+        }
+        
+        return resultsDoc;
 
     }
 
@@ -370,6 +378,7 @@ public class RepositoryDirectorySession extends BaseSession {
 
     @Override
     public void close() throws DirectoryException {
+        coreSession.close();
         directory.removeSession(this);
     }
 
