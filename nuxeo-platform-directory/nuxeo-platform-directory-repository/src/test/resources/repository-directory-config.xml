@@ -15,7 +15,8 @@
       <fieldMapping name="username">uid</fieldMapping>
       <fieldMapping name="password">foo</fieldMapping>
       <fieldMapping name="company">bar</fieldMapping>
-      <createPath>/default-domain/workspaces/test</createPath>
+      <createPath>/default-domain/workspaces/test/rootFolder</createPath>
+      <canCreateRootFolder>true</canCreateRootFolder>
       <references>
       </references>
     </directory>

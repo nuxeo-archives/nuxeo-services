@@ -39,7 +39,7 @@ public class RepositoryDirectoryDescriptor implements Cloneable {
 
     @XNode("schema")
     protected String schemaName;
-    
+
     @XNode("docType")
     protected String docType;
 
@@ -63,14 +63,16 @@ public class RepositoryDirectoryDescriptor implements Cloneable {
 
     @XNode("repositoryName")
     protected String repositoryName = "default";
-    
+
     @XNode("createPath")
     protected String createPath = "/";
-    
+
+    @XNode("canCreateRootFolder")
+    public boolean canCreateRootFolder = true;
+
     @XNodeMap(value = "fieldMapping", key = "@name", type = HashMap.class, componentType = String.class)
     public Map<String, String> fieldMapping = new HashMap<String, String>();
 
-    
     @XNodeList(value = "acl", type = ACLDescriptor[].class, componentType = ACLDescriptor.class)
     protected ACLDescriptor[] acls;
 
@@ -90,6 +92,7 @@ public class RepositoryDirectoryDescriptor implements Cloneable {
         clone.repositoryName = repositoryName;
         clone.docType = docType;
         clone.createPath = createPath;
+        clone.canCreateRootFolder = canCreateRootFolder;
         clone.fieldMapping = fieldMapping;
         if (acls != null) {
             clone.acls = acls;
@@ -132,6 +135,10 @@ public class RepositoryDirectoryDescriptor implements Cloneable {
         if (other.fieldMapping != null || overwrite) {
             fieldMapping = other.fieldMapping;
         }
+
+        autoVersioning = other.autoVersioning;
+        canCreateRootFolder = other.canCreateRootFolder;
+
         if (other.acls != null || overwrite) {
             if (acls == null) {
                 acls = other.acls;

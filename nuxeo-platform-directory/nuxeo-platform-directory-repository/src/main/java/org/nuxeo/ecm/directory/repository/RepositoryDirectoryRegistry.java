@@ -59,7 +59,6 @@ public class RepositoryDirectoryRegistry extends
             } else {
                 log.info("Directory registered: " + name);
             }
-            contrib.start();
             descriptors.put(id, contrib);
         }
     }
@@ -108,6 +107,12 @@ public class RepositoryDirectoryRegistry extends
             return descriptors.get(name).repositoryDirectory;
         }
         return null;
+    }
+    
+    public void startAll() {
+        for (RepositoryDirectoryDescriptor desc : descriptors.values()) {
+            desc.start();
+        }
     }
 
     public Collection<? extends Directory> getDirectories() {

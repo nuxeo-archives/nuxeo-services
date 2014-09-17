@@ -17,10 +17,8 @@
  */
 package org.nuxeo.ecm.directory.repository.test;
 
-import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ;
-
-import javax.inject.Inject;
+import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE;
 
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -30,7 +28,6 @@ import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
-import org.nuxeo.ecm.platform.usermanager.UserManager;
 
 /**
  * Default repository initializer that create the default DM doc hierarchy.
@@ -52,8 +49,6 @@ public class RepositoryDirectoryInit implements RepositoryInit {
     
     public static String USERS_UNRESTRICTED_PATH = "/default-domain/workspaces/test/"+USERS_UNRESTRICTED_FOLDER; 
     
-    @Inject
-    UserManager um;
 
     @Override
     public void populate(CoreSession session) throws ClientException {

@@ -18,7 +18,13 @@
 
 package org.nuxeo.ecm.directory.repository;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.nuxeo.ecm.core.api.ClientException;
+import org.nuxeo.ecm.core.api.CoreInstance;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.core.schema.types.Schema;
@@ -37,9 +43,13 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class RepositoryDirectory extends AbstractDirectory {
 
+    private static final Log log = LogFactory.getLog(RepositoryDirectory.class);
+
     private final RepositoryDirectoryDescriptor descriptor;
 
     protected final Schema schema;
+
+    protected final CoreSession coreSession;
 
     public RepositoryDirectory(RepositoryDirectoryDescriptor descriptor)
             throws ClientException {
@@ -52,6 +62,53 @@ public class RepositoryDirectory extends AbstractDirectory {
             throw new DirectoryException(String.format(
                     "Unknown schema '%s' for directory '%s' ",
                     descriptor.schemaName, name));
+        }
+        coreSession = CoreInstance.openCoreSession(descriptor.repositoryName);
+        String createPath = descriptor.createPath;
+
+        DocumentModel rootFolder = null;
+        try {
+            rootFolder = coreSession.getDocument(new PathRef(createPath));
+        } catch (ClientException e) {
+            // Normal case
+        }
+
+
+        if (rootFolder == null) {
+
+            String parentFolder = descriptor.createPath.substring(0,
+                    createPath.lastIndexOf("/"));
+            String createFolder = descriptor.createPath.substring(
+                    createPath.lastIndexOf("/") + 1, createPath.length());
+
+            log.info(String.format(
+                    "Root folder '%s' has not been found for the directory '%s' on the repository '%s', will create it with given ACL",
+                    createPath, name, descriptor.repositoryName));
+            if (descriptor.canCreateRootFolder) {
+                try {
+                    DocumentModel doc = coreSession.createDocumentModel(
+                            parentFolder, createFolder, "Folder");
+                    doc.setProperty("dublincore", "title", createFolder);
+                    coreSession.createDocument(doc);
+                    // Set ACL from descriptor
+                } catch (ClientException e) {
+                    throw new DirectoryException(
+                            String.format(
+                                    "The root folder '%s' can not be created under '%s' for the directory '%s' on the repository '%s',"
+                                            + " please make sure you have set the right path or that the path exist",
+                                    createFolder, parentFolder, name,
+                                    descriptor.repositoryName), e);
+                }
+                finally
+                {
+                    coreSession.close();
+                }
+            }
+
+        } else {
+            log.info(String.format(
+                    "Root folder '%s' has been found for the directory '%s' on the repository '%s'",
+                    createPath, name, descriptor.repositoryName));
         }
     }
 
@@ -74,7 +131,7 @@ public class RepositoryDirectory extends AbstractDirectory {
         return null;
     }
 
-    public Field getField(String name) throws DirectoryException{
+    public Field getField(String name) throws DirectoryException {
         Field field = schema.getField(name);
         if (field == null) {
             throw new DirectoryException(String.format(
@@ -112,8 +169,8 @@ public class RepositoryDirectory extends AbstractDirectory {
     }
 
     @Override
-    public void invalidateDirectoryCache() throws DirectoryException {
-        getCache().invalidateAll();
+    public synchronized void shutdown() {
+        super.shutdown();
+        coreSession.close();
     }
-
 }

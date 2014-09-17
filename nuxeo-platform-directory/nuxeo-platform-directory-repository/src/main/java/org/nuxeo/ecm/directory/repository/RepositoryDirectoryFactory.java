@@ -98,6 +98,11 @@ DirectoryFactory {
             }
         }
     }
+    
+    @Override
+    public void applicationStarted(ComponentContext context) throws Exception {
+        directories.startAll();
+    }
 
     @Override
     public void unregisterExtension(Extension extension)
