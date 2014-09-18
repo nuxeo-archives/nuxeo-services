@@ -22,10 +22,16 @@ import java.security.Principal;
 
 import javax.security.auth.login.LoginContext;
 
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.local.ClientLoginModule;
+import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.test.CoreScope;
+import org.nuxeo.ecm.core.test.RepositorySettings;
 import org.nuxeo.ecm.core.test.TransactionalFeature;
+import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
@@ -35,13 +41,14 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LocalDeploy;
 import org.nuxeo.runtime.test.runner.SimpleFeature;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 import com.google.inject.Binder;
 import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
 @Features({ TransactionalFeature.class, CoreFeature.class })
-@RepositoryConfig(init = RepositoryDirectoryInit.class)
+@RepositoryConfig(init = RepositoryDirectoryInit.class, cleanup = Granularity.METHOD)
 @Deploy({ "org.nuxeo.ecm.directory.api", "org.nuxeo.ecm.directory",
         "org.nuxeo.ecm.directory.sql", "org.nuxeo.ecm.core.schema",
         "org.nuxeo.ecm.directory.types.contrib",
@@ -64,7 +71,50 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
     public static String USER2_NAME = "user_2";
 
     public static String USER2_PWD = "user_2";
+    
+    protected CoreSession coreSession;
 
+    private RepositorySettings repository;
+
+    @Override
+    public void start(FeaturesRunner runner) throws Exception {
+       initializeSession(runner);
+    }
+    
+    protected void initializeSession(FeaturesRunner runner) throws Exception {
+        repository = runner.getFeature(CoreFeature.class).getRepository();
+        CoreScope.INSTANCE.enter();
+        CoreSession session = repository.createSession();
+        if (session == null) {
+            throw new AssertionError("Cannot open session");
+        }
+        RepositoryInit factory = repository.getInitializer();
+        if (factory != null) {
+            factory.populate(session);
+            session.save();
+            waitForAsyncCompletion();
+        }
+        session.close();
+    }
+    
+    protected void waitForAsyncCompletion() {
+        boolean tx = TransactionHelper.isTransactionActive();
+        boolean rb = TransactionHelper.isTransactionMarkedRollback();
+        if (tx || rb) {
+            // there may be afterCommit work pending, so we
+            // have to commit the transaction
+            TransactionHelper.commitOrRollbackTransaction();
+        }
+        Framework.getLocalService(EventService.class).waitForAsyncCompletion();
+        if (tx || rb) {
+            // restore previous tx status
+            TransactionHelper.startTransaction();
+            if (rb) {
+                TransactionHelper.setTransactionRollbackOnly();
+            }
+        }
+    }
+    
     @Override
     public void configure(final FeaturesRunner runner, Binder binder) {
         bindDirectory(binder, REPO_DIRECTORY_NAME);
@@ -82,6 +132,8 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
 
                 });
     }
+    
+    
 
     protected static Principal loginAs(String username, String password)
             throws Exception {
@@ -92,6 +144,8 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
                 password.toCharArray(), logContext.getSubject());
         return user;
     }
+    
+    
 
     @Override
     public void stop(FeaturesRunner runner) throws Exception {

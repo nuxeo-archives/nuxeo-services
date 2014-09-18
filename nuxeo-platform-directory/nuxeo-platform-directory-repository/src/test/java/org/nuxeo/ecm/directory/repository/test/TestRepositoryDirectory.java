@@ -30,6 +30,7 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -159,6 +160,7 @@ public class TestRepositoryDirectory {
     // try to getEntry id
 
     @Test
+    @Ignore
     public void testCreateFromModel() throws Exception {
         DocumentModel entry = BaseSession.createEntryModel(null, SCHEMA_NAME,
                 null, null);
