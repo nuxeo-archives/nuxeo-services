@@ -21,6 +21,7 @@
       <acl userOrGroupName="user_1" privilege="Write" granted="true" />
       <acl userOrGroupName="user_2" privilege="Read" granted="true" />
       <acl userOrGroupName="user_2" privilege="Write" granted="true" />
+      <acl userOrGroupName="user_3" privilege="Read" granted="false" />
       <references>
       </references>
     </directory>

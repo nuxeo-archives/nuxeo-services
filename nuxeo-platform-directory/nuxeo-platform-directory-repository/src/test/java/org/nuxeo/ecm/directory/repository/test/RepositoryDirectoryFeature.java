@@ -20,10 +20,8 @@ package org.nuxeo.ecm.directory.repository.test;
 
 import java.security.Principal;
 
-import javax.inject.Inject;
 import javax.security.auth.login.LoginContext;
 
-import org.junit.runners.model.FrameworkMethod;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.local.ClientLoginModule;
 import org.nuxeo.ecm.core.test.CoreFeature;
@@ -32,15 +30,12 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.directory.repository.RepositoryDirectory;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LocalDeploy;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
-import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.SimpleFeature;
 
 import com.google.inject.Binder;
@@ -66,11 +61,9 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
 
     public static String USER1_NAME = "user_1";
 
-    public static String USER1_PWD = "user_1";
-
     public static String USER2_NAME = "user_2";
 
-    public static String USER2_PWD = "user_2";
+    public static String USER3_NAME = "user_3";
     
     protected CoreSession coreSession;
 

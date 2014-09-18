@@ -30,7 +30,7 @@ public class TestUserRepositoryDirectory extends TestRepositoryDirectory {
     public void setUp() throws Exception {
         RepositoryDirectoryFeature.loginAs(
                 RepositoryDirectoryFeature.USER1_NAME,
-                RepositoryDirectoryFeature.USER1_PWD);
+                RepositoryDirectoryFeature.USER1_NAME);
         super.setUp();
     }
 

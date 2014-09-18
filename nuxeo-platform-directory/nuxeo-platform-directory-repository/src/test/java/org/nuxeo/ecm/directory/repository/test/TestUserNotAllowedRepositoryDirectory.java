@@ -35,36 +35,33 @@ import com.google.inject.name.Named;
 
 @RunWith(FeaturesRunner.class)
 @Features(RepositoryDirectoryFeature.class)
-public class TestUserRestrictedRepositoryDirectory {
+public class TestUserNotAllowedRepositoryDirectory {
 
     @Inject
     @Named(value = RepositoryDirectoryFeature.REPO_DIRECTORY_NAME)
     protected Directory repoDir;
 
-    protected Session dirRestrictedSession = null;
+    protected Session dirNotAllowedSession = null;
 
     @Before
     public void setUp() throws Exception {
         RepositoryDirectoryFeature.loginAs(
-                RepositoryDirectoryFeature.USER2_NAME,
-                RepositoryDirectoryFeature.USER2_NAME);
-        dirRestrictedSession = repoDir.getSession();
+                RepositoryDirectoryFeature.USER3_NAME,
+                RepositoryDirectoryFeature.USER3_NAME);
+        dirNotAllowedSession = repoDir.getSession();
     }
 
     @After
     public void tearDown() throws Exception {
-        dirRestrictedSession.close();
+        dirNotAllowedSession.close();
     }
 
     @Test
     public void testGetEntry() throws Exception {
         DocumentModel entry;
-        entry = dirRestrictedSession.getEntry(RepositoryDirectoryInit.DOC_ID_USER2);
-        assertEquals("foo2",
-                entry.getPropertyValue(TestRepositoryDirectory.FOO_FIELD));
-        entry = dirRestrictedSession.getEntry("no-such-entry");
+        entry = dirNotAllowedSession.getEntry(RepositoryDirectoryInit.DOC_ID_USER2);
         assertNull(entry);
-        entry = dirRestrictedSession.getEntry(RepositoryDirectoryInit.DOC_ID_USER1);
+        entry = dirNotAllowedSession.getEntry(RepositoryDirectoryInit.DOC_ID_USER1);
         assertNull(entry);
 
     }
