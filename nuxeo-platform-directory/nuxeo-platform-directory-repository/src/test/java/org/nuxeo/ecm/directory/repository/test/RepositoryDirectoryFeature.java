@@ -43,7 +43,7 @@ import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
 @Features({ TransactionalFeature.class, CoreFeature.class })
-@RepositoryConfig(init = RepositoryDirectoryInit.class)
+@RepositoryConfig(init = RepositoryDirectoryInit.class , cleanup = Granularity.CLASS )
 @Deploy({ "org.nuxeo.ecm.directory.api", "org.nuxeo.ecm.directory",
         "org.nuxeo.ecm.directory.sql", "org.nuxeo.ecm.core.schema",
         "org.nuxeo.ecm.directory.types.contrib",
@@ -57,26 +57,28 @@ import com.google.inject.name.Names;
         "org.nuxeo.ecm.directory.repository.config.tests:test-contrib-usermanager-config.xml",
         "org.nuxeo.ecm.directory.repository.config.tests:repository-directory-config.xml" })
 public class RepositoryDirectoryFeature extends SimpleFeature {
-    public static final String REPO_DIRECTORY_NAME = "repositoryDirectory";
+    public static final String REPO_DIRECTORY_NAME = "userRepositoryDirectory";
 
     public static String USER1_NAME = "user_1";
 
     public static String USER2_NAME = "user_2";
 
     public static String USER3_NAME = "user_3";
-    
+
     protected CoreSession coreSession;
 
     @Override
     public void initialize(FeaturesRunner runner) throws Exception {
-        runner.getFeature(CoreFeature.class).getRepository().setGranularity(Granularity.CLASS);
+        // Use granularity class to avoid cleaning the bootstrapped folder of
+        // the bundle between test method
+        runner.getFeature(CoreFeature.class).getRepository().setGranularity(
+                Granularity.CLASS);
     }
-    
+
     @Override
     public void configure(final FeaturesRunner runner, Binder binder) {
         bindDirectory(binder, REPO_DIRECTORY_NAME);
     }
-    
 
     protected void bindDirectory(Binder binder, final String name) {
         binder.bind(Directory.class).annotatedWith(Names.named(name)).toProvider(
@@ -90,8 +92,6 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
 
                 });
     }
-    
-    
 
     protected static Principal loginAs(String username, String password)
             throws Exception {
@@ -102,9 +102,5 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
                 password.toCharArray(), logContext.getSubject());
         return user;
     }
-    
-    
-
-   
 
 }

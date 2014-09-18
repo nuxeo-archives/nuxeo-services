@@ -31,9 +31,10 @@ public class TestUserRepositoryDirectory extends TestRepositoryDirectory {
         RepositoryDirectoryFeature.loginAs(
                 RepositoryDirectoryFeature.USER1_NAME,
                 RepositoryDirectoryFeature.USER1_NAME);
-        super.setUp();
+        dirSession = repoDir.getSession();
     }
-
+    
+    
    
 
     @Test

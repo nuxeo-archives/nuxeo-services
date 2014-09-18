@@ -138,7 +138,7 @@ public class RepositoryDirectorySession extends BaseSession {
         }
         // TODO : deal with auto-versionning 
         // TODO : deal with encrypted password
-        // TODO : deal with references => should be fixed
+        // TODO : deal with references 
         Map<String, Object> properties = new HashMap<String, Object>();
         List<String> createdRefs = new LinkedList<String>();
         for (String fieldId : fieldMap.keySet()) {

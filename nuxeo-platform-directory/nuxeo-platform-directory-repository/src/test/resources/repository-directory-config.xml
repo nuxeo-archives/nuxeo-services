@@ -4,7 +4,7 @@
   <extension target="org.nuxeo.ecm.directory.repository.RepositoryDirectoryFactory"
     point="directories">
 
-    <directory name="repositoryDirectory">
+    <directory name="userRepositoryDirectory">
       <schema>schema1</schema>
       <docType>RepoDirDoc</docType>
       <repositoryName>test</repositoryName>
@@ -22,6 +22,18 @@
       <acl userOrGroupName="user_2" privilege="Read" granted="true" />
       <acl userOrGroupName="user_2" privilege="Write" granted="true" />
       <acl userOrGroupName="user_3" privilege="Read" granted="false" />
+      <references>
+      </references>
+    </directory>
+    
+    <directory name="groupRepositoryDirectory">
+      <schema>schema1</schema>
+      <docType>OtherDirDoc</docType>
+      <repositoryName>test</repositoryName>
+      <readOnly>false</readOnly>
+      <autoVersioning>false</autoVersioning>
+      <createPath>/rootFolder</createPath>
+      <canCreateRootFolder>false</canCreateRootFolder>
       <references>
       </references>
     </directory>

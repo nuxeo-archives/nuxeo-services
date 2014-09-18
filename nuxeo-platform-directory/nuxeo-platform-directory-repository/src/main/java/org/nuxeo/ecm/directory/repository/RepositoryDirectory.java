@@ -115,6 +115,9 @@ public class RepositoryDirectory extends AbstractDirectory {
                 } finally {
                     coreSession.close();
                 }
+            } else
+            {
+                coreSession.close();
             }
 
         } else {

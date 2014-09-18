@@ -53,9 +53,7 @@ public class RepositoryDirectoryInit implements RepositoryInit {
     
     @Override
     public void populate(CoreSession session) throws ClientException {
-        // TODO: bootstrap user, groups, folder, setup acl etc.
-        
-        
+        //RootFolder should have been bootstrapped by the directory on repository bundle
         DocumentModel doc = session.createDocumentModel(ROOT_FOLDER_PATH,
                 "test", "Workspace");
         doc.setProperty("dublincore", "title", "test");

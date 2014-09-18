@@ -17,7 +17,6 @@
  */
 package org.nuxeo.ecm.directory.repository.test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.junit.After;
