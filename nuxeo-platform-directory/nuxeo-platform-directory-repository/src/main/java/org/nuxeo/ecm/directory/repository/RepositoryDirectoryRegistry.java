@@ -59,6 +59,7 @@ public class RepositoryDirectoryRegistry extends
             } else {
                 log.info("Directory registered: " + name);
             }
+            contrib.init();
             descriptors.put(id, contrib);
         }
     }

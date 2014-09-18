@@ -153,8 +153,12 @@ public class RepositoryDirectoryDescriptor implements Cloneable {
         }
     }
 
-    public void start() {
+    public void init() {
         repositoryDirectory = new RepositoryDirectory(this);
+    }
+    
+    public void start() {
+        repositoryDirectory.start();
     }
 
     public void stop() {

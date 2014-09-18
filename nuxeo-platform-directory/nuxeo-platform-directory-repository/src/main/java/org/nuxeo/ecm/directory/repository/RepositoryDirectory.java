@@ -49,8 +49,6 @@ public class RepositoryDirectory extends AbstractDirectory {
 
     protected final Schema schema;
 
-    protected final CoreSession coreSession;
-
     public RepositoryDirectory(RepositoryDirectoryDescriptor descriptor)
             throws ClientException {
         super(descriptor.name);
@@ -63,7 +61,12 @@ public class RepositoryDirectory extends AbstractDirectory {
                     "Unknown schema '%s' for directory '%s' ",
                     descriptor.schemaName, name));
         }
-        coreSession = CoreInstance.openCoreSession(descriptor.repositoryName);
+        
+    }
+    
+    public void start()
+    {
+        CoreSession coreSession = CoreInstance.openCoreSession(descriptor.repositoryName);
         String createPath = descriptor.createPath;
 
         DocumentModel rootFolder = null;
@@ -78,6 +81,10 @@ public class RepositoryDirectory extends AbstractDirectory {
 
             String parentFolder = descriptor.createPath.substring(0,
                     createPath.lastIndexOf("/"));
+            if(createPath.lastIndexOf("/") == 0)
+            {
+                parentFolder = "/";
+            }
             String createFolder = descriptor.createPath.substring(
                     createPath.lastIndexOf("/") + 1, createPath.length());
 
@@ -168,9 +175,5 @@ public class RepositoryDirectory extends AbstractDirectory {
         return new RepositoryDirectoryReference(this, referenceFieldName);
     }
 
-    @Override
-    public synchronized void shutdown() {
-        super.shutdown();
-        coreSession.close();
-    }
+    
 }
