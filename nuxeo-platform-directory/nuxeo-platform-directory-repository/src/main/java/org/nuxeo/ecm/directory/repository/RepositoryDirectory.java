@@ -25,6 +25,9 @@ import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.api.security.ACE;
+import org.nuxeo.ecm.core.api.security.ACL;
+import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.core.schema.types.Schema;
@@ -61,11 +64,10 @@ public class RepositoryDirectory extends AbstractDirectory {
                     "Unknown schema '%s' for directory '%s' ",
                     descriptor.schemaName, name));
         }
-        
+
     }
-    
-    public void start()
-    {
+
+    public void start() {
         CoreSession coreSession = CoreInstance.openCoreSession(descriptor.repositoryName);
         String createPath = descriptor.createPath;
 
@@ -76,13 +78,11 @@ public class RepositoryDirectory extends AbstractDirectory {
             // Normal case
         }
 
-
         if (rootFolder == null) {
 
             String parentFolder = descriptor.createPath.substring(0,
                     createPath.lastIndexOf("/"));
-            if(createPath.lastIndexOf("/") == 0)
-            {
+            if (createPath.lastIndexOf("/") == 0) {
                 parentFolder = "/";
             }
             String createFolder = descriptor.createPath.substring(
@@ -98,6 +98,13 @@ public class RepositoryDirectory extends AbstractDirectory {
                     doc.setProperty("dublincore", "title", createFolder);
                     coreSession.createDocument(doc);
                     // Set ACL from descriptor
+                    for (int i = 0; i < descriptor.acls.length; i++) {
+                        String userOrGroupName = descriptor.acls[i].userOrGroupName;
+                        String privilege = descriptor.acls[i].privilege;
+                        boolean granted = descriptor.acls[i].granted;
+                        setACL(doc, userOrGroupName, privilege, granted);
+                    }
+
                 } catch (ClientException e) {
                     throw new DirectoryException(
                             String.format(
@@ -105,18 +112,33 @@ public class RepositoryDirectory extends AbstractDirectory {
                                             + " please make sure you have set the right path or that the path exist",
                                     createFolder, parentFolder, name,
                                     descriptor.repositoryName), e);
-                }
-                finally
-                {
+                } finally {
                     coreSession.close();
                 }
             }
 
         } else {
             log.info(String.format(
-                    "Root folder '%s' has been found for the directory '%s' on the repository '%s'",
+                    "Root folder '%s' has been found for the directory '%s' on the repository '%s', ACL will not be set",
                     createPath, name, descriptor.repositoryName));
         }
+    }
+
+    protected DocumentModel setACL(DocumentModel rootFolder,
+            String userOrGroupName, String privilege, boolean granted) {
+        ACP acp = rootFolder.getACP();
+        ACL localACL = acp.getOrCreateACL();
+        localACL.add(new ACE(userOrGroupName, privilege, granted));
+        rootFolder.setACP(acp, true);
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format(
+                    "Set ACL on root folder '%s' : userOrGroupName = '%s', privilege = '%s' , granted = '%s' ",
+                    rootFolder.getPathAsString(), userOrGroupName, privilege,
+                    granted));
+        }
+
+        return rootFolder.getCoreSession().saveDocument(rootFolder);
     }
 
     public RepositoryDirectoryDescriptor getDescriptor() {
@@ -175,5 +197,4 @@ public class RepositoryDirectory extends AbstractDirectory {
         return new RepositoryDirectoryReference(this, referenceFieldName);
     }
 
-    
 }

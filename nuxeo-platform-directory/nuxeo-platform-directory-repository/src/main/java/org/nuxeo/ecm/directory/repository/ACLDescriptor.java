@@ -29,13 +29,14 @@ import org.nuxeo.common.xmap.annotation.XObject;
 @XObject(value = "acl")
 public class ACLDescriptor implements Cloneable {
 
-    @XNode("@userName")
-    public String userName;
+    @XNode("@userOrGroupName")
+    public String userOrGroupName;
     
-    @XNode("@read")
-    public boolean read = false;
+    @XNode("@privilege")
+    public String privilege;
     
-    @XNode("@write")
-    public boolean write = false;
+    @XNode("@granted")
+    public boolean granted = false;
+    
 
 }

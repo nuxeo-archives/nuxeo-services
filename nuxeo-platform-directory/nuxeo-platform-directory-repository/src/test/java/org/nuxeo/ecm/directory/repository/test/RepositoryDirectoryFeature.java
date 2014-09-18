@@ -20,35 +20,35 @@ package org.nuxeo.ecm.directory.repository.test;
 
 import java.security.Principal;
 
+import javax.inject.Inject;
 import javax.security.auth.login.LoginContext;
 
+import org.junit.runners.model.FrameworkMethod;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.local.ClientLoginModule;
-import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.CoreScope;
-import org.nuxeo.ecm.core.test.RepositorySettings;
 import org.nuxeo.ecm.core.test.TransactionalFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.api.DirectoryService;
+import org.nuxeo.ecm.directory.repository.RepositoryDirectory;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LocalDeploy;
+import org.nuxeo.runtime.test.runner.RuntimeFeature;
+import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.SimpleFeature;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 import com.google.inject.Binder;
 import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
 @Features({ TransactionalFeature.class, CoreFeature.class })
-@RepositoryConfig(init = RepositoryDirectoryInit.class, cleanup = Granularity.METHOD)
+@RepositoryConfig(init = RepositoryDirectoryInit.class)
 @Deploy({ "org.nuxeo.ecm.directory.api", "org.nuxeo.ecm.directory",
         "org.nuxeo.ecm.directory.sql", "org.nuxeo.ecm.core.schema",
         "org.nuxeo.ecm.directory.types.contrib",
@@ -74,51 +74,16 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
     
     protected CoreSession coreSession;
 
-    private RepositorySettings repository;
-
     @Override
-    public void start(FeaturesRunner runner) throws Exception {
-       initializeSession(runner);
-    }
-    
-    protected void initializeSession(FeaturesRunner runner) throws Exception {
-        repository = runner.getFeature(CoreFeature.class).getRepository();
-        CoreScope.INSTANCE.enter();
-        CoreSession session = repository.createSession();
-        if (session == null) {
-            throw new AssertionError("Cannot open session");
-        }
-        RepositoryInit factory = repository.getInitializer();
-        if (factory != null) {
-            factory.populate(session);
-            session.save();
-            waitForAsyncCompletion();
-        }
-        session.close();
-    }
-    
-    protected void waitForAsyncCompletion() {
-        boolean tx = TransactionHelper.isTransactionActive();
-        boolean rb = TransactionHelper.isTransactionMarkedRollback();
-        if (tx || rb) {
-            // there may be afterCommit work pending, so we
-            // have to commit the transaction
-            TransactionHelper.commitOrRollbackTransaction();
-        }
-        Framework.getLocalService(EventService.class).waitForAsyncCompletion();
-        if (tx || rb) {
-            // restore previous tx status
-            TransactionHelper.startTransaction();
-            if (rb) {
-                TransactionHelper.setTransactionRollbackOnly();
-            }
-        }
+    public void initialize(FeaturesRunner runner) throws Exception {
+        runner.getFeature(CoreFeature.class).getRepository().setGranularity(Granularity.CLASS);
     }
     
     @Override
     public void configure(final FeaturesRunner runner, Binder binder) {
         bindDirectory(binder, REPO_DIRECTORY_NAME);
     }
+    
 
     protected void bindDirectory(Binder binder, final String name) {
         binder.bind(Directory.class).annotatedWith(Names.named(name)).toProvider(
@@ -147,10 +112,6 @@ public class RepositoryDirectoryFeature extends SimpleFeature {
     
     
 
-    @Override
-    public void stop(FeaturesRunner runner) throws Exception {
-        Framework.getService(DirectoryService.class).getDirectory(
-                REPO_DIRECTORY_NAME).getSession().close();
-    }
+   
 
 }

@@ -34,7 +34,7 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
  */
 public class RepositoryDirectoryInit implements RepositoryInit {
 
-    public static String WORKSPACES_PATH = "/default-domain/workspaces";
+    public static String ROOT_FOLDER_PATH = "/rootFolder";
     
     
     public static String DOC_ID_USER1 = "user1";
@@ -45,9 +45,9 @@ public class RepositoryDirectoryInit implements RepositoryInit {
     public static String USERS_RESTRICTED_FOLDER = "users-restricted";
     public static String USERS_UNRESTRICTED_FOLDER = "users-unrestricted";
     
-    public static String USERS_RESTRICTED_PATH = "/default-domain/workspaces/test/"+USERS_RESTRICTED_FOLDER; 
+    public static String USERS_RESTRICTED_PATH = ROOT_FOLDER_PATH+ "/test/"+USERS_RESTRICTED_FOLDER; 
     
-    public static String USERS_UNRESTRICTED_PATH = "/default-domain/workspaces/test/"+USERS_UNRESTRICTED_FOLDER; 
+    public static String USERS_UNRESTRICTED_PATH = ROOT_FOLDER_PATH+ "/test/"+USERS_UNRESTRICTED_FOLDER; 
     
     
     
@@ -55,15 +55,14 @@ public class RepositoryDirectoryInit implements RepositoryInit {
     public void populate(CoreSession session) throws ClientException {
         // TODO: bootstrap user, groups, folder, setup acl etc.
         
-        DocumentModel docDomain = createDomain(session, "default-domain", "Default domain");
         
-        DocumentModel doc = session.createDocumentModel(WORKSPACES_PATH,
+        DocumentModel doc = session.createDocumentModel(ROOT_FOLDER_PATH,
                 "test", "Workspace");
         doc.setProperty("dublincore", "title", "test");
         doc = session.createDocument(doc);
         
         doc = createDocument(session,
-                WORKSPACES_PATH+"/test", USERS_RESTRICTED_FOLDER, "Folder");
+                ROOT_FOLDER_PATH+"/test", USERS_RESTRICTED_FOLDER, "Folder");
         doc = removeAllPermission(doc);
         //user_2 has no permission on it
         doc = applyPermission(doc, WRITE, true, RepositoryDirectoryFeature.USER1_NAME);
@@ -79,12 +78,12 @@ public class RepositoryDirectoryInit implements RepositoryInit {
         session.saveDocument(user1);
         
         doc = createDocument(session,
-                WORKSPACES_PATH+"/test", USERS_UNRESTRICTED_FOLDER, "Folder");
+                ROOT_FOLDER_PATH+"/test", USERS_UNRESTRICTED_FOLDER, "Folder");
         
         removeAllPermission(doc);
         //Both User1 & User2 have write access
-        applyPermission(docDomain, WRITE, true, RepositoryDirectoryFeature.USER1_NAME);
-        applyPermission(docDomain, WRITE, true, RepositoryDirectoryFeature.USER2_NAME);
+        applyPermission(doc, WRITE, true, RepositoryDirectoryFeature.USER1_NAME);
+        applyPermission(doc, WRITE, true, RepositoryDirectoryFeature.USER2_NAME);
         
         //Create a User2 doc for unit test
         DocumentModel user2 = createDocument(session, doc.getPathAsString(), "User2", "RepoDirDoc");

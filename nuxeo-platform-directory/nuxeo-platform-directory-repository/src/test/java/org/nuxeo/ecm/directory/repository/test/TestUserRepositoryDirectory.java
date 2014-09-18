@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import org.junit.After;
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.DocumentModel;
 
@@ -32,13 +31,10 @@ public class TestUserRepositoryDirectory extends TestRepositoryDirectory {
         RepositoryDirectoryFeature.loginAs(
                 RepositoryDirectoryFeature.USER1_NAME,
                 RepositoryDirectoryFeature.USER1_PWD);
-        dirSession = repoDir.getSession();
+        super.setUp();
     }
 
-    @After
-    public void tearDown() throws Exception {
-        dirSession.close();
-    }
+   
 
     @Test
     public void testGetEntry() throws Exception {
