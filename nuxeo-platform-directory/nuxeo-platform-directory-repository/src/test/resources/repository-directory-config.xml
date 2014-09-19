@@ -23,7 +23,10 @@
       <acl userOrGroupName="user_2" privilege="Write" granted="true" />
       <acl userOrGroupName="user_3" privilege="Read" granted="false" />
       <references>
+        <repositoryDirectoryReference field="groups" directory="groupRepositoryDirectory"
+          targetField="groupId" />
       </references>
+
     </directory>
     
     <directory name="groupRepositoryDirectory">
@@ -35,6 +38,12 @@
       <createPath>/rootFolder</createPath>
       <canCreateRootFolder>false</canCreateRootFolder>
       <references>
+        <inverseReference field="members" directory="userRepositoryDirectory"
+          dualReferenceField="groups" />
+        <repositoryDirectoryReference field="subGroups" directory="groupRepositoryDirectory"
+          targetField="parentGroupId" />
+        <inverseReference field="parentGroups"
+          directory="groupRepositoryDirectory" dualReferenceField="subGroups" />
       </references>
     </directory>
 

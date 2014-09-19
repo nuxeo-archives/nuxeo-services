@@ -24,6 +24,8 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.directory.InverseReference;
+import org.nuxeo.ecm.directory.sql.TableReference;
 
 /**
  * Directory on top of repository descriptor
@@ -69,6 +71,12 @@ public class RepositoryDirectoryDescriptor implements Cloneable {
 
     @XNode("canCreateRootFolder")
     public boolean canCreateRootFolder = true;
+    
+    @XNodeList(value = "references/repositoryDirectoryReference", type = RepositoryDirectoryReference[].class, componentType = RepositoryDirectoryReference.class)
+    private RepositoryDirectoryReference[] repositoryDirectoryReference;
+
+    @XNodeList(value = "references/inverseReference", type = InverseReference[].class, componentType = InverseReference.class)
+    private InverseReference[] inverseReferences;
 
     @XNodeMap(value = "fieldMapping", key = "@name", type = HashMap.class, componentType = String.class)
     public Map<String, String> fieldMapping = new HashMap<String, String>();

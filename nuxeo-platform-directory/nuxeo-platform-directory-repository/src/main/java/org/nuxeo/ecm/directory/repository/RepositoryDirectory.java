@@ -195,9 +195,5 @@ public class RepositoryDirectory extends AbstractDirectory {
         sessions.add(session);
     }
 
-    @Override
-    public Reference getReference(String referenceFieldName) {
-        return new RepositoryDirectoryReference(this, referenceFieldName);
-    }
 
 }

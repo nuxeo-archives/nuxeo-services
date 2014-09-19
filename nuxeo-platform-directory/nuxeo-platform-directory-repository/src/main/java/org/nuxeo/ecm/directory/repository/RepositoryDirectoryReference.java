@@ -25,28 +25,42 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.nuxeo.common.xmap.annotation.XNode;
+import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.storage.sql.jdbc.db.Table;
+import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect;
 import org.nuxeo.ecm.directory.AbstractReference;
 import org.nuxeo.ecm.directory.DirectoryEntryNotFoundException;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.Reference;
 
 /**
- * Class to handle reference 
+ * Class to handle reference
  *
  * @since 5.9.6
  */
+@XObject(value = "repositoryDirectoryReference")
 public class RepositoryDirectoryReference extends AbstractReference {
+
+    @XNode("@field")
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
+    }
+
+    @Override
+    @XNode("@directory")
+    public void setTargetDirectoryName(String targetDirectoryName) {
+        this.targetDirectoryName = targetDirectoryName;
+    }
+
+    @XNode("@targetField")
+    protected String targetField;
 
     private static final Log log = LogFactory.getLog(RepositoryDirectoryReference.class);
 
-    final RepositoryDirectory dir;
 
-    final String fieldName;
+    String fieldName;
 
-    RepositoryDirectoryReference(RepositoryDirectory dir, String fieldName) {
-        this.dir = dir;
-        this.fieldName = fieldName;
-    }
 
     public void addLinks(String sourceId, List<String> targetIds)
             throws DirectoryException {
@@ -65,7 +79,7 @@ public class RepositoryDirectoryReference extends AbstractReference {
     protected List<String> doCollect(Collector extractor)
             throws DirectoryException {
         Set<String> ids = new HashSet<String>();
-        Reference ref = dir.getReference(fieldName);
+        Reference ref = getSourceDirectory().getReference(fieldName);
         if (ref != null) {
             try {
                 ids.addAll(extractor.collect(ref));
@@ -118,7 +132,7 @@ public class RepositoryDirectoryReference extends AbstractReference {
 
     @Override
     protected AbstractReference newInstance() {
-        return new RepositoryDirectoryReference(dir, fieldName);
+        return new RepositoryDirectoryReference();
     }
 
     @Override
