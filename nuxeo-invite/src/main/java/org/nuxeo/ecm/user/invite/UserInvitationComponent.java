@@ -823,23 +823,6 @@ public class UserInvitationComponent extends DefaultComponent implements
     }
 
     @Override
-    public DocumentModelList getRegistrationsForUser(final String docId,
-            final String username) throws ClientException {
-        final DocumentModelList registrationDocs = new DocumentModelListImpl();
-        new UnrestrictedSessionRunner(getTargetRepositoryName()) {
-            @Override
-            public void run() throws ClientException {
-                String query = "SELECT * FROM Document WHERE ecm:currentLifeCycleState != 'validated' AND"
-                        + " ecm:mixinType = 'UserRegistration' AND docinfo:documentId = '%s' AND"
-                        + " userinfo:login = '%s' AND ecm:isCheckedInVersion = 0";
-                query = String.format(query, docId, username);
-                registrationDocs.addAll(session.query(query));
-            }
-        }.runUnrestricted();
-        return registrationDocs;
-    }
-
-    @Override
     public void checkRequestId(final String requestId) throws ClientException,
             UserRegistrationException {
         RequestIdValidator runner = new RequestIdValidator(requestId);
